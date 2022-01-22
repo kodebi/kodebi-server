@@ -1,6 +1,6 @@
 <p align="center">
   <a href="http://dev.app.kodebi.de">
-    <img src="client/src/static/kodebi_logo_classic.svg" width="250">
+    <img src="kodebi_logo_classic.svg" width="250">
   </a>
 </p>
 <h1 align="center">
