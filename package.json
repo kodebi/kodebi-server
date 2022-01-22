@@ -1,0 +1,42 @@
+{
+  "name": "kodebi-server",
+  "version": "0.2",
+  "description": "Backend for kodebi",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon",
+    "start": "node --es-module-specifier-resolution=node ./server.js",
+    "heroku-postbuild": "cd client && npm ci && npm run build"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kodebi/kodebi-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kodebi/kodebi-server/issues"
+  },
+  "homepage": "https://github.com/kodebi/kodebi-server#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.15",
+    "prettier": "2.4.1"
+  },
+  "dependencies": {
+    "compression": "1.7.4",
+    "cookie-parser": "1.4.5",
+    "cors": "2.8.5",
+    "dotenv": "^10.0.0",
+    "esm": "^3.2.25",
+    "express": "4.17.1",
+    "express-jwt": "^6.1.0",
+    "helmet": "^4.6.0",
+    "imagekit": "^3.2.3",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.15",
+    "mongoose": "^5.10.0",
+    "multer": "^1.4.3",
+    "nodemailer": "^6.7.1"
+  }
+}
