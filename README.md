@@ -44,9 +44,8 @@ http://localhost:3000
 
 Kodebi backend mit create, update, delete (CRUD) und authentication-authorization (auth)
 Testen mit https://install.advancedrestclient.com/install
-
-Body-Content-Type: application/json
-Editor-view: Json visual Editor
+- Body-Content-Type: application/json
+- Editor-view: Json visual Editor
 
 #### application programming interface (API)
 
