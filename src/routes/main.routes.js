@@ -7,14 +7,26 @@ import conversationRoutes from "./conversation.routes";
 import userRoutes from "./user.routes";
 
 const router = express.Router();
-router.use(bookRoutes.router);
-router.use(userRoutes.router);
-router.use(authRoutes.router);
+router.use("/api/books", bookRoutes.router);
+router.use("/api/users", userRoutes.router);
+router.use("/auth", authRoutes.router);
 
 const protectedRouter = express.Router();
-protectedRouter.use(authCtrl.requireSignin, bookRoutes.protectedRouter);
-protectedRouter.use(authCtrl.requireSignin, conversationRoutes.protectedRouter);
-protectedRouter.use(authCtrl.requireSignin, userRoutes.protectedRouter);
+protectedRouter.use(
+  "/api/books",
+  authCtrl.requireSignin,
+  bookRoutes.protectedRouter
+);
+protectedRouter.use(
+  "/api/messages",
+  authCtrl.requireSignin,
+  conversationRoutes.protectedRouter
+);
+protectedRouter.use(
+  "/api/users",
+  authCtrl.requireSignin,
+  userRoutes.protectedRouter
+);
 
 const mainRouter = express.Router();
 mainRouter.use(router);
