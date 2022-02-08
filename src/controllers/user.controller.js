@@ -1,5 +1,5 @@
-import User from '../models/user.model';
-import extend from 'lodash/extend';
+import User from "../models/user.model";
+import extend from "lodash/extend";
 
 // Erstelle Benutzer
 const create = async (req, res) => {
@@ -8,13 +8,13 @@ const create = async (req, res) => {
   try {
     await user.save();
     return res.status(200).json({
-      message: 'Benutzer erfolgreich erstellt!',
-      user: user,
+      message: "Benutzer erfolgreich erstellt!",
+      user: user
     });
   } catch (err) {
     return res.status(500).json({
       what: err.name,
-      error: err.message,
+      error: err.message
     });
   }
 };
@@ -23,31 +23,33 @@ const create = async (req, res) => {
 const list = async (req, res) => {
   try {
     let users = await User.find()
-      .select('name email updated created group')
+      .select("name email updated created group")
       .exec();
     res.json(users);
   } catch (err) {
     return res.status(500).json({
-      what: err.name,
+      what: err.name
     });
   }
 };
 
 // Einzelne Benutzer finden
 // An die Anfrage anhaengen und weiterleiten
-const userByID = async (req, res, next, id) => {
+const userByID = async (req, res, next) => {
   try {
-    let user = await User.findById(id).exec();
+    let user = await User.findById(req.params.userId).exec();
     if (!user) {
       return res.status(404).json({
-        error: 'User nicht gefunden',
+        error: "User nicht gefunden"
       });
     }
+    user.hashed_password = undefined;
+    user.salt = undefined;
     req.profile = user;
     next();
   } catch (err) {
     return res.status(500).json({
-      error: 'Could not retrieve user',
+      error: "Could not retrieve user"
     });
   }
 };
@@ -71,7 +73,7 @@ const update = async (req, res) => {
     res.json(user);
   } catch (err) {
     return res.status(500).json({
-      what: err.name,
+      what: err.name
     });
   }
 };
@@ -86,7 +88,7 @@ const remove = async (req, res) => {
     res.json(deletedUser);
   } catch (err) {
     return res.status(500).json({
-      what: err.name,
+      what: err.name
     });
   }
 };
@@ -97,5 +99,5 @@ export default {
   read,
   list,
   remove,
-  update,
+  update
 };
