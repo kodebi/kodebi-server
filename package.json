@@ -1,5 +1,5 @@
 {
-  "name": "auth-routes-kdebi",
+  "name": "kodebi-server",
   "version": "0.2",
   "description": "",
   "main": "src/server.js",
@@ -41,7 +41,5 @@
     "multer": "1.4.4",
     "nodemailer": "6.7.2"
   },
-  "keywords": [
-    "kodebi"
-  ]
+  "keywords": ["kodebi"]
 }
