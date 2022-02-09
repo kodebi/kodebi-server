@@ -2,6 +2,7 @@ import Book from "../models/book.model";
 import extend from "lodash/extend";
 import BorrowedBookList from "../models/bookList.model";
 import BookmarkedBooks from "../models/bookList.model";
+import BookListEntry from "../models/bookList.model";
 
 //Buch wird erstellt
 const create = async (req, res) => {
@@ -155,7 +156,7 @@ const borrow = async (req, res) => {
   try {
     const borrowListId = req.profile.borrowedBooks._id;
     const ownBorrowListId = req.ownProfile.borrowedBooks._id;
-    const bookEntry = new BorrowedBookList(req.book);
+    const bookEntry = new BookListEntry(req.book);
     bookEntry.borrowerId = req.profile._id;
     bookEntry.borrowerName = req.profile.name;
     bookEntry.book = req.book._id;
@@ -201,7 +202,7 @@ const getBorrowed = async (req, res) => {
 const bookmark = async (req, res) => {
   try {
     const bookmarksId = req.ownProfile.bookmarkedBooks._id;
-    const bookEntry = new BookmarkedBooks(req.book);
+    const bookEntry = new BookListEntry(req.book);
     bookEntry.borrowerId = "";
     bookEntry.borrowerName = "";
     bookEntry.book = req.book._id;
@@ -209,7 +210,7 @@ const bookmark = async (req, res) => {
     await BookmarkedBooks.findByIdAndUpdate(
       bookmarksId,
       { $push: { bookmarkedBookList: bookEntry } },
-      { new: true }
+      { new: true, upsert: true }
     ).exec();
 
     return res.status(201).json({

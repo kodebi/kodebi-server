@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
+import BorrowedBookList from "./bookList.model";
+import BookmarkedBooks from "./bookList.model";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -74,6 +76,19 @@ UserSchema.path("hashed_password").validate(function () {
     this.invalidate("password", "Password ist erforderlich");
   }
 }, null);
+
+UserSchema.pre("save", function (next) {
+  if (this.isNew) {
+    const borrow = new BorrowedBookList();
+    const bookmark = new BorrowedBookList();
+    borrow.save();
+    bookmark.save();
+
+    this.borrowedBooks = borrow;
+    this.bookmarkedBooks = bookmark;
+  }
+  next();
+});
 
 UserSchema.methods = {
   authenticate: function (plainTextInputPassword) {
