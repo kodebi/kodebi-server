@@ -153,20 +153,28 @@ const remove = async (req, res) => {
 
 const borrow = async (req, res) => {
   try {
-    const borrowList = req.profile.borrowedBooks;
+    const borrowListId = req.profile.borrowedBooks._id;
+    const ownBorrowListId = req.ownProfile.borrowedBooks._id;
     const bookEntry = new BorrowedBookList(req.book);
     bookEntry.borrowerId = req.profile._id;
     bookEntry.borrowerName = req.profile.name;
     bookEntry.book = req.book._id;
 
     await BorrowedBookList.findByIdAndUpdate(
-      borrowList,
+      borrowListId,
       { $push: { borrowedBookList: bookEntry } },
-      { new: true }
+      { upsert: true }
+    ).exec();
+
+    await BorrowedBookList.findByIdAndUpdate(
+      ownBorrowListId,
+      { $push: { borrowedBookList: bookEntry } },
+      { upsert: true }
     ).exec();
 
     return res.status(201).json({
-      message: "Buch gemerkt"
+      message: "Buch Ausgliehen",
+      borrower: req.profile.name
     });
   } catch (err) {
     return res.status(500).json({
@@ -177,7 +185,7 @@ const borrow = async (req, res) => {
 
 const getBorrowed = async (req, res) => {
   try {
-    const borrowedId = req.profile.borrowedBooks._id;
+    const borrowedId = req.ownProfile.borrowedBooks._id;
     const borrowed = await BorrowedBookList.findById(borrowedId)
       .populate("borrowedBookList")
       .exec();
@@ -192,20 +200,20 @@ const getBorrowed = async (req, res) => {
 
 const bookmark = async (req, res) => {
   try {
-    const bookmarks = req.profile.bookmarkedBooks;
+    const bookmarksId = req.ownProfile.bookmarkedBooks._id;
     const bookEntry = new BookmarkedBooks(req.book);
     bookEntry.borrowerId = "";
     bookEntry.borrowerName = "";
     bookEntry.book = req.book._id;
 
     await BookmarkedBooks.findByIdAndUpdate(
-      bookmarks,
+      bookmarksId,
       { $push: { bookmarkedBookList: bookEntry } },
       { new: true }
     ).exec();
 
     return res.status(201).json({
-      message: "Buch ausgeliehen"
+      message: "Buch gemerkt"
     });
   } catch (err) {
     return res.status(500).json({

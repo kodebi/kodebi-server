@@ -64,7 +64,7 @@ const getOwnUser = async (req, res, next) => {
     }
     user.hashed_password = undefined;
     user.salt = undefined;
-    req.profile = user;
+    req.ownProfile = user;
     next();
   } catch (err) {
     return res.status(500).json({

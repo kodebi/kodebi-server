@@ -42,9 +42,10 @@ protectedRouter
   );
 
 protectedRouter
-  .route("/borrow/:bookId")
+  .route("/borrow/:bookId/user/:userId")
   .put(
     userCtrl.getOwnUser,
+    userCtrl.userByID,
     authCtrl.hasAuthorizationForBook,
     bookCtrl.bookByID,
     bookCtrl.borrow
