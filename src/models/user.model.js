@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
-import BorrowedBookList from "./bookList.model";
+import BorrowedBooks from "./bookList.model";
 import BookmarkedBooks from "./bookList.model";
 
 const UserSchema = new mongoose.Schema(
@@ -47,6 +47,10 @@ const UserSchema = new mongoose.Schema(
     bookmarkedBooks: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "BookmarkedBooks"
+    },
+    totalBorrowedBooks: {
+      type: Number,
+      default: 0
     }
   },
   {
@@ -79,8 +83,8 @@ UserSchema.path("hashed_password").validate(function () {
 
 UserSchema.pre("save", function (next) {
   if (this.isNew) {
-    const borrow = new BorrowedBookList();
-    const bookmark = new BorrowedBookList();
+    const borrow = new BorrowedBooks();
+    const bookmark = new BookmarkedBooks();
     borrow.save();
     bookmark.save();
 
