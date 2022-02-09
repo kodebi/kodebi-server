@@ -44,12 +44,12 @@ const BookSchema = new mongoose.Schema(
       required: [true, "Bitte beschreibe dein Buch"]
     },
     //User ID
-    owner: {
+    ownerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: [true, "Bitte einen User eintragen"]
     },
-    username: {
+    ownerName: {
       type: String,
       required: [true, "Bitte einen User eintragen"]
     },
@@ -67,7 +67,6 @@ const BookSchema = new mongoose.Schema(
       type: String,
       trim: true,
       lowercase: true
-      //required: [true, 'Gruppe ist erforderlich']
     }
   },
   {

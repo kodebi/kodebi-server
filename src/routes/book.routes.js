@@ -2,6 +2,7 @@ import express from "express";
 import authCtrl from "../controllers/auth.controller";
 import bookCtrl from "../controllers/book.controller";
 import imgCtrl from "../controllers/image.controller";
+import userCtrl from "../controllers/user.controller";
 
 const protectedRouter = express.Router();
 
@@ -39,6 +40,25 @@ protectedRouter
     imgCtrl.UploadBookImageToImagekit,
     bookCtrl.updateImage
   );
+
+protectedRouter
+  .route("/borrow/:bookId")
+  .put(
+    userCtrl.getOwnUser,
+    authCtrl.hasAuthorizationForBook,
+    bookCtrl.bookByID,
+    bookCtrl.borrow
+  );
+
+protectedRouter.route("/borrow").put(userCtrl.getOwnUser, bookCtrl.getBorrowed);
+
+protectedRouter
+  .route("/bookmark/:bookId")
+  .put(userCtrl.getOwnUser, bookCtrl.bookByID, bookCtrl.bookmark);
+
+protectedRouter
+  .route("/bookmark")
+  .put(userCtrl.getOwnUser, bookCtrl.getBookmarks);
 
 // Only show some books?
 const router = express.Router();

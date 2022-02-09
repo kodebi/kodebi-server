@@ -1,12 +1,14 @@
 import Book from "../models/book.model";
 import extend from "lodash/extend";
+import BorrowedBookList from "../models/bookList.model";
+import BookmarkedBooks from "../models/bookList.model";
 
 //Buch wird erstellt
 const create = async (req, res) => {
   try {
     // overwrite the username und the user_id from the req
-    // req.body.username = req.auth.name;
-    req.body.owner = req.auth._id;
+    req.body.ownerName = req.auth.name;
+    req.body.ownerId = req.auth._id;
 
     const book = new Book(req.body);
     try {
@@ -64,7 +66,7 @@ const bookByUser = async (req, res) => {
 };
 
 //Buch über Buch-ID auswählen
-const bookByID = async (req, res, next, id) => {
+const bookByID = async (req, res, next) => {
   try {
     let book = await Book.findById(req.params.bookId);
     if (!book) {
@@ -95,9 +97,8 @@ const update = async (req, res) => {
     // overwrite the user_id from the req
     // with the old data from the book, so no one can change the book owner
     // Also don't allow to change the image in this route
-    // Update the username to the name of the currently loggedin user
-    // req.body.username = req.auth.name;
-    req.body.owner = book.owner;
+    req.body.ownerName = book.ownerName;
+    req.body.ownerId = book.ownerId;
     req.body.image = book.image;
     req.body.imagekitIoId = book.imagekitIoId;
 
@@ -150,6 +151,84 @@ const remove = async (req, res) => {
   }
 };
 
+const borrow = async (req, res) => {
+  try {
+    const borrowList = req.profile.borrowedBooks;
+    const bookEntry = new BorrowedBookList(req.book);
+    bookEntry.borrowerId = req.profile._id;
+    bookEntry.borrowerName = req.profile.name;
+    bookEntry.book = req.book._id;
+
+    await BorrowedBookList.findByIdAndUpdate(
+      borrowList,
+      { $push: { borrowedBookList: bookEntry } },
+      { new: true }
+    ).exec();
+
+    return res.status(201).json({
+      message: "Buch gemerkt"
+    });
+  } catch (err) {
+    return res.status(500).json({
+      what: err.name
+    });
+  }
+};
+
+const getBorrowed = async (req, res) => {
+  try {
+    const borrowedId = req.profile.borrowedBooks._id;
+    const borrowed = await BorrowedBookList.findById(borrowedId)
+      .populate("borrowedBookList")
+      .exec();
+
+    return res.status(200).json(borrowed);
+  } catch (err) {
+    return res.status(500).json({
+      what: err.name
+    });
+  }
+};
+
+const bookmark = async (req, res) => {
+  try {
+    const bookmarks = req.profile.bookmarkedBooks;
+    const bookEntry = new BookmarkedBooks(req.book);
+    bookEntry.borrowerId = "";
+    bookEntry.borrowerName = "";
+    bookEntry.book = req.book._id;
+
+    await BookmarkedBooks.findByIdAndUpdate(
+      bookmarks,
+      { $push: { bookmarkedBookList: bookEntry } },
+      { new: true }
+    ).exec();
+
+    return res.status(201).json({
+      message: "Buch ausgeliehen"
+    });
+  } catch (err) {
+    return res.status(500).json({
+      what: err.name
+    });
+  }
+};
+
+const getBookmarks = async (req, res) => {
+  try {
+    const bookmarksId = req.profile.bookmarkedBooks._id;
+    const bookmarks = await BookmarkedBooks.findById(bookmarksId)
+      .populate("bookmarkedBookList")
+      .exec();
+
+    return res.status(200).json(bookmarks);
+  } catch (err) {
+    return res.status(500).json({
+      what: err.name
+    });
+  }
+};
+
 export default {
   create,
   list,
@@ -158,5 +237,9 @@ export default {
   update,
   updateImage,
   remove,
-  bookByUser
+  bookByUser,
+  borrow,
+  getBorrowed,
+  bookmark,
+  getBookmarks
 };

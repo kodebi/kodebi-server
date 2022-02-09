@@ -54,6 +54,25 @@ const userByID = async (req, res, next) => {
   }
 };
 
+const getOwnUser = async (req, res, next) => {
+  try {
+    let user = await User.findById(req.auth._id).exec();
+    if (!user) {
+      return res.status(404).json({
+        error: "User nicht gefunden"
+      });
+    }
+    user.hashed_password = undefined;
+    user.salt = undefined;
+    req.profile = user;
+    next();
+  } catch (err) {
+    return res.status(500).json({
+      error: "Could not retrieve user"
+    });
+  }
+};
+
 // Lese Benutzer, Entferne Passwort
 const read = (req, res) => {
   req.profile.hashed_password = undefined;
@@ -96,6 +115,7 @@ const remove = async (req, res) => {
 export default {
   create,
   userByID,
+  getOwnUser,
   read,
   list,
   remove,

@@ -8,6 +8,7 @@ protectedRouter.route("/").get(userCtrl.list); // Show users with GET
 
 protectedRouter
   .route("/:userId")
+  .all(userCtrl.userByID)
   .get(userCtrl.read) // Showing a user with GET
   .put(authCtrl.hasAuthorization, userCtrl.update) // Update with PUT
   .delete(authCtrl.hasAuthorization, userCtrl.remove); // Remove with DELETE
