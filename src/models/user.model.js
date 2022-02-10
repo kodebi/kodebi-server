@@ -47,10 +47,6 @@ const UserSchema = new mongoose.Schema(
     bookmarkedBooks: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "BookmarkedBooks"
-    },
-    totalBorrowedBooks: {
-      type: Number,
-      default: 0
     }
   },
   {

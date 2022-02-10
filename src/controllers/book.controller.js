@@ -1,8 +1,7 @@
-import Book from "../models/book.model";
 import extend from "lodash/extend";
+import Book from "../models/book.model";
 import BorrowedBookList from "../models/bookList.model";
 import BookmarkedBooks from "../models/bookList.model";
-import BookListEntry from "../models/bookList.model";
 
 //Buch wird erstellt
 const create = async (req, res) => {
@@ -156,25 +155,26 @@ const borrow = async (req, res) => {
   try {
     const borrowListId = req.profile.borrowedBooks._id;
     const ownBorrowListId = req.ownProfile.borrowedBooks._id;
-    const bookEntry = new BookListEntry(req.book);
-    bookEntry.borrowerId = req.profile._id;
-    bookEntry.borrowerName = req.profile.name;
-    bookEntry.book = req.book._id;
+    let book = req.book;
+    book.borrowerId = req.profile._id;
+    book.borrowerName = req.profile.name;
+    book.timesBorrowed += 1;
+    await book.save();
 
     await BorrowedBookList.findByIdAndUpdate(
       borrowListId,
-      { $push: { borrowedBookList: bookEntry } },
+      { $push: { borrowedBookList: book } },
       { upsert: true }
     ).exec();
 
     await BorrowedBookList.findByIdAndUpdate(
       ownBorrowListId,
-      { $push: { borrowedBookList: bookEntry } },
+      { $push: { borrowedBookList: book }, $inc: { totalBorrowedBooks: 1 } },
       { upsert: true }
     ).exec();
 
     return res.status(201).json({
-      message: "Buch Ausgliehen",
+      message: "Buch ausgliehen",
       borrower: req.profile.name
     });
   } catch (err) {
@@ -202,19 +202,35 @@ const getBorrowed = async (req, res) => {
 const bookmark = async (req, res) => {
   try {
     const bookmarksId = req.ownProfile.bookmarkedBooks._id;
-    const bookEntry = new BookListEntry(req.book);
-    bookEntry.borrowerId = "";
-    bookEntry.borrowerName = "";
-    bookEntry.book = req.book._id;
+    let book = req.book;
 
     await BookmarkedBooks.findByIdAndUpdate(
       bookmarksId,
-      { $push: { bookmarkedBookList: bookEntry } },
+      { $push: { bookmarkedBookList: book } },
       { new: true, upsert: true }
     ).exec();
 
     return res.status(201).json({
       message: "Buch gemerkt"
+    });
+  } catch (err) {
+    return res.status(500).json({
+      what: err.name
+    });
+  }
+};
+
+const deleteBookmark = async (req, res) => {
+  try {
+    const bookmarksId = req.ownProfile.bookmarkedBooks._id;
+    let book = req.book;
+
+    await BookmarkedBooks.findByIdAndUpdate(bookmarksId, {
+      $pull: { bookmarkedBookList: book }
+    }).exec();
+
+    return res.status(201).json({
+      message: "Buch von Merkliste entfernt"
     });
   } catch (err) {
     return res.status(500).json({
@@ -238,6 +254,34 @@ const getBookmarks = async (req, res) => {
   }
 };
 
+const returnBook = async (req, res) => {
+  try {
+    const borrowListId = req.profile.borrowedBooks._id;
+    const ownBorrowListId = req.ownProfile.borrowedBooks._id;
+    let book = req.book;
+    book.borrowerId = req.profile._id;
+    book.borrowerName = req.profile.name;
+    await book.save();
+
+    await BorrowedBookList.findByIdAndUpdate(borrowListId, {
+      $pull: { borrowedBookList: book }
+    }).exec();
+
+    await BorrowedBookList.findByIdAndUpdate(ownBorrowListId, {
+      $pull: { borrowedBookList: book }
+    }).exec();
+
+    return res.status(201).json({
+      message: "Buch zurückgegeben",
+      returner: req.profile.name
+    });
+  } catch (err) {
+    return res.status(500).json({
+      what: err.name
+    });
+  }
+};
+
 export default {
   create,
   list,
@@ -250,5 +294,7 @@ export default {
   borrow,
   getBorrowed,
   bookmark,
-  getBookmarks
+  deleteBookmark,
+  getBookmarks,
+  returnBook
 };

@@ -53,6 +53,13 @@ const BookSchema = new mongoose.Schema(
       type: String,
       required: [true, "Bitte einen User eintragen"]
     },
+    borrowerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    },
+    borrowerName: {
+      type: String
+    },
     status: {
       type: String,
       trim: true,
