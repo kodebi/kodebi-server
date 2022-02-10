@@ -1,5 +1,6 @@
 import extend from "lodash/extend";
 import Book from "../models/book.model";
+import User from "../models/user.model";
 import BorrowedBookList from "../models/bookList.model";
 import BookmarkedBooks from "../models/bookList.model";
 
@@ -256,20 +257,21 @@ const getBookmarks = async (req, res) => {
 
 const returnBook = async (req, res) => {
   try {
-    const borrowListId = req.profile.borrowedBooks._id;
     const ownBorrowListId = req.ownProfile.borrowedBooks._id;
     let book = req.book;
-    book.borrowerId = req.profile._id;
-    book.borrowerName = req.profile.name;
-    await book.save();
-
-    await BorrowedBookList.findByIdAndUpdate(borrowListId, {
-      $pull: { borrowedBookList: book }
-    }).exec();
+    const borrower = await User.findById(req.book.borrowerId);
 
     await BorrowedBookList.findByIdAndUpdate(ownBorrowListId, {
       $pull: { borrowedBookList: book }
     }).exec();
+
+    await BorrowedBookList.findByIdAndUpdate(borrower.borrowedBooks, {
+      $pull: { borrowedBookList: book }
+    }).exec();
+
+    book.borrowerId = null;
+    book.borrowerName = null;
+    await book.save();
 
     return res.status(201).json({
       message: "Buch zurückgegeben",

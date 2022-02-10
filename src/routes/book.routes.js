@@ -3,6 +3,7 @@ import authCtrl from "../controllers/auth.controller";
 import bookCtrl from "../controllers/book.controller";
 import imgCtrl from "../controllers/image.controller";
 import userCtrl from "../controllers/user.controller";
+import counterCtrl from "../controllers/counter.controller";
 
 const protectedRouter = express.Router();
 
@@ -48,10 +49,20 @@ protectedRouter
     userCtrl.userByID,
     authCtrl.hasAuthorizationForBook,
     bookCtrl.bookByID,
+    counterCtrl.incremenBorrowCounter,
     bookCtrl.borrow
   );
 
-protectedRouter.route("/borrow").put(userCtrl.getOwnUser, bookCtrl.getBorrowed);
+protectedRouter.route("/borrow").get(userCtrl.getOwnUser, bookCtrl.getBorrowed);
+
+protectedRouter
+  .route("/return/:bookId")
+  .put(
+    userCtrl.getOwnUser,
+    authCtrl.hasAuthorizationForBook,
+    bookCtrl.bookByID,
+    bookCtrl.returnBook
+  );
 
 protectedRouter
   .route("/bookmark/:bookId")
@@ -59,7 +70,7 @@ protectedRouter
 
 protectedRouter
   .route("/bookmark")
-  .put(userCtrl.getOwnUser, bookCtrl.getBookmarks);
+  .get(userCtrl.getOwnUser, bookCtrl.getBookmarks);
 
 // Only show some books?
 const router = express.Router();

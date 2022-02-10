@@ -2,7 +2,7 @@ import TotalBorrowedBooks from "../models/counter.model";
 
 const mainCounterName = "main";
 
-const getMainCounter = async (req, res) => {
+const getBorrowCounter = async (req, res) => {
   try {
     let counter = await TotalBorrowedBooks.find({
       counterName: mainCounterName
@@ -25,16 +25,19 @@ const getMainCounter = async (req, res) => {
   }
 };
 
-const incrementMainCounter = async (req, res) => {
+const incremenBorrowCounter = async (req, res, next) => {
   try {
-    const counter = await TotalBorrowedBooks.findOneAndUpdate(
+    // const counter =
+    await TotalBorrowedBooks.findOneAndUpdate(
       { counterName: mainCounterName },
       { $inc: { totalBorrowedBooks: 1 } },
       { new: true, upsert: true }
     );
-    return res.status(201).json({
-      totalBorrowedBooks: counter
-    });
+    next();
+    // req.totalBorrowedBooks = counter;
+    // return res.status(201).json({
+    //   totalBorrowedBooks: counter
+    // });
   } catch (err) {
     return res.status(500).json({
       what: err.name
@@ -43,6 +46,6 @@ const incrementMainCounter = async (req, res) => {
 };
 
 export default {
-  incrementMainCounter,
-  getMainCounter
+  incremenBorrowCounter,
+  getBorrowCounter
 };
