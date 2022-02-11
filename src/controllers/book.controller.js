@@ -160,6 +160,7 @@ const borrow = async (req, res) => {
     book.borrowerId = req.profile._id;
     book.borrowerName = req.profile.name;
     book.timesBorrowed += 1;
+    book.status = "Verliehen";
     await book.save();
 
     await BorrowedBookList.findByIdAndUpdate(
@@ -269,6 +270,7 @@ const returnBook = async (req, res) => {
       $pull: { borrowedBookList: book }
     }).exec();
 
+    book.status = "Bereit zum Verleihen";
     book.borrowerId = null;
     book.borrowerName = null;
     await book.save();

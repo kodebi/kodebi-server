@@ -19,6 +19,12 @@ const signin = async (req, res) => {
       });
     }
 
+    if (!user.activated) {
+      return res.status(401).send({
+        error: "Please activate user."
+      });
+    }
+
     // JSON Web Tokens
     const token = jwt.sign(
       {
@@ -64,10 +70,13 @@ const signout = (req, res) => {
 // Beschuetze Anfrage mit JWT
 // Abfrage ob Benutzer angemeldet ist
 // Wird in den Routen benutzt
+// Read from auth header
 const requireSignin = expressJwt({
   secret: config.jwtSecret,
   userProperty: "auth",
-  algorithms: ["HS256"]
+  algorithms: ["HS256"],
+  issuer: "http://www.kodebi.de",
+  audience: "http://www.kodebi.de/api/"
 });
 
 // Darf der Benutzer die Aktion ausfuehren?

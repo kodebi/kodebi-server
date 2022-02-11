@@ -4,6 +4,7 @@ import extend from "lodash/extend";
 // Erstelle Benutzer
 const create = async (req, res) => {
   // POST daher body
+  req.body.activated = false;
   const user = new User(req.body);
   try {
     await user.save();
