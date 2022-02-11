@@ -6,22 +6,22 @@ const getUniqueErrorMessage = (err) => {
   let output;
   try {
     let fieldName = err.message.substring(
-      err.message.lastIndexOf('.$') + 2,
-      err.message.lastIndexOf('_1')
+      err.message.lastIndexOf(".$") + 2,
+      err.message.lastIndexOf("_1")
     );
     output =
       fieldName.charAt(0).toUpperCase() +
       fieldName.slice(1) +
-      ' already exists';
+      " already exists";
   } catch (ex) {
-    output = 'Unique field already exists';
+    output = "Unique field already exists";
   }
   return output;
 };
 // Fehler aus der Datenbank
 // Wenn die Anfrage falsche Eingaben macht
 const getErrorMessage = (err) => {
-  let message = '';
+  let message = "";
   if (err.code) {
     switch (err.code) {
       case 11000:
@@ -39,12 +39,12 @@ const getErrorMessage = (err) => {
   return message;
 };
 
-const goodError = (err) => {
-  if (err.name === 'ValidationError')
+const createError = (err, res) => {
+  if (err.name === "ValidationError")
     return (err = handleValidationError(err, res));
-  if (err.code && err.code == 11000)
+  if (err.code && err.code === 11000)
     return (err = handleDuplicateKeyError(err, res));
-  return res.status(500).send('An unknown error occurred.');
+  return res.status(500).send("An unknown error occurred.");
 };
 
 //handle email or username duplicates
@@ -60,7 +60,7 @@ const handleValidationError = (err, res) => {
   let fields = Object.values(err.errors).map((el) => el.path);
   let code = 400;
   if (errors.length > 1) {
-    const formattedErrors = errors.join(' ');
+    const formattedErrors = errors.join(" ");
     res.status(code).send({ messages: formattedErrors, fields: fields });
   } else {
     res.status(code).send({ messages: errors, fields: fields });

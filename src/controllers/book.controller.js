@@ -271,8 +271,8 @@ const returnBook = async (req, res) => {
     }).exec();
 
     book.status = "Bereit zum Verleihen";
-    book.borrowerId = null;
-    book.borrowerName = null;
+    book.borrowerId = undefined;
+    book.borrowerName = undefined;
     await book.save();
 
     return res.status(201).json({

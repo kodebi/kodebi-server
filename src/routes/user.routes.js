@@ -1,6 +1,7 @@
 import express from "express";
 import userCtrl from "../controllers/user.controller";
 import authCtrl from "../controllers/auth.controller";
+import activationCtrl from "../controllers/activation.controller";
 
 const protectedRouter = express.Router();
 
@@ -14,6 +15,6 @@ protectedRouter
   .delete(authCtrl.hasAuthorization, userCtrl.remove); // Remove with DELETE
 
 const router = express.Router();
-router.route("/").post(userCtrl.create); // Create user with POST
+router.route("/").post(userCtrl.create, activationCtrl.requestUserActivation); // Create user with POST
 
 export default { protectedRouter, router };

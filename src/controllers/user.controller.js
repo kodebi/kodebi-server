@@ -2,16 +2,15 @@ import User from "../models/user.model";
 import extend from "lodash/extend";
 
 // Erstelle Benutzer
-const create = async (req, res) => {
+const create = async (req, res, next) => {
   // POST daher body
   req.body.activated = false;
   const user = new User(req.body);
   try {
     await user.save();
-    return res.status(200).json({
-      message: "Benutzer erfolgreich erstellt!",
-      user: user
-    });
+    req.ownProfile._id = user._id;
+    req.ownProfile.email = user.email;
+    next();
   } catch (err) {
     return res.status(500).json({
       what: err.name,
@@ -78,6 +77,9 @@ const getOwnUser = async (req, res, next) => {
 const read = (req, res) => {
   req.profile.hashed_password = undefined;
   req.profile.salt = undefined;
+  req.profile.group = undefined;
+  req.profile.borrowedBooks = undefined;
+  req.profile.bookmarkedBooks = undefined;
   return res.json(req.profile);
 };
 
