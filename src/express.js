@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(compress());
 
-// Secure apps
+// Secure app
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -25,8 +25,8 @@ app.use(
       styleSrc: ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"],
       fontSrc: ["https://fonts.gstatic.com"],
       imgSrc: ["'self'", "https://ik.imagekit.io"],
-      baseUri: ["'self'"]
-    }
+      baseUri: ["'self'"],
+    },
   })
 );
 // Cross Origin Resource Sharing
@@ -37,21 +37,18 @@ if (config.env === "production") {
   app.use(express.static(path.join(CURRENT_WORKING_DIR, "client/build")));
 }
 
-// use morgan for logging
+// use morgan + winston for logging
 // Use rate-limiter
+// rate-limiter-flexible
 
 // mount routes
 app.use("/", mainRoutes.mainRouter);
 
-app.get("*", (req, res) => {
-  try {
-    res.sendFile(path.join(CURRENT_WORKING_DIR + "/client/dist/index.html"));
-  } catch (err) {
-    res.send(500).json({
-      what: err.name,
-      error: err.message
-    });
-  }
-});
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(CURRENT_WORKING_DIR + "/client/dist/index.html"));
+//   if (err) {
+//     res.status(500).send(err);
+//   }
+// });
 
 export default app;

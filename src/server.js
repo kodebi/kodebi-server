@@ -2,26 +2,41 @@ import config from "./config/config";
 import app from "./express";
 import mongoose from "mongoose";
 
-mongoose.Promise = global.Promise;
-mongoose.connect(config.mongoUri, {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false
+mongoose
+  .connect(config.mongoUri)
+  .then(() => {
+    console.info("connected to database: " + config.mongoUri);
+    startServer();
+  })
+  .catch((error) =>
+    console.info(
+      "connection error for db: " + config.mongoUri + " error: " + error
+    )
+  );
+
+// monitor db connection
+const db = mongoose.connection;
+db.on("disconnected", () => {
+  console.info(
+    "disconnected from database: " + config.mongoUri + ", reconnecting..."
+  );
 });
-mongoose.connection.on("error", () => {
-  throw new Error(`unable to connect to database: ${config.mongoUri}`);
+db.on("reconnected", () => {
+  console.info("reconnected to database: " + config.mongoUri);
+});
+db.on("error", () => {
+  console.error("database: error: " + error);
+  process.exit(1);
 });
 
-mongoose.connection.on("connected", () => {
-  console.info(`connected to database: ${config.mongoUri}`);
-});
-
-app.listen(config.port, (err) => {
-  if (err) {
-    console.log(err);
-  }
-  console.info("Server started on port %s.", config.port);
-});
+const startServer = () => {
+  app.listen(config.port, (err) => {
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    }
+    console.info("Server started on port %s.", config.port);
+  });
+};
 
 export default app; // for testing

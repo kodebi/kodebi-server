@@ -22,7 +22,7 @@ const config = {
   ImagePublicKey: process.env.IMAGEKIT_PUB_KEY,
   ImagePrivateKey: process.env.IMAGEKIT_PRIVATE_KEY,
   ImageUrlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
-  userActivationSalt: process.env.USER_ACTIVATION_SALT || "YOUR_secret_key"
+  userActivationSalt: process.env.USER_ACTIVATION_SALT || "YOUR_secret_key",
 };
 
 export default config;
