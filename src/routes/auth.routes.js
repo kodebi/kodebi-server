@@ -14,7 +14,7 @@ router
 
 router
   .route("/failedUserActivation/:email")
-  .get(
+  .post(
     activationCtrl.failedUserActivation,
     activationCtrl.requestUserActivation
   );
@@ -22,6 +22,6 @@ router
 router.route("/requestPasswordReset").post(resetCtrl.requestPasswordReset); // Request password reset
 router.route("/resetPassword").post(resetCtrl.resetPassword); // Reset Password
 
-router.route("/totalBorrowedBooks").post(counterCtrl.getBorrowCounter);
+router.route("/totalBorrowedBooks").get(counterCtrl.getBorrowCounter);
 
-export default router;
+export default { router };
