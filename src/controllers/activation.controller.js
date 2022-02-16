@@ -49,6 +49,15 @@ const requestUserActivation = async (req, res) => {
     "/" +
     req.ownProfile._id;
 
+  if (process.env.NODE_ENV === "test") {
+    // Get token directly for testing
+    return res.status(200).json({
+      message: "Benutzer erfolgreich erstellt!",
+      user: req.ownProfile._id,
+      token: registerToken
+    });
+  }
+
   sendRegisterUserMail(req.ownProfile.email, link);
 
   return res.status(200).json({

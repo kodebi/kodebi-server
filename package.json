@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node --es-module-specifier-resolution=node ./server.js",
-    "heroku-postbuild": "cd client && npm ci && npm run build"
+    "heroku-postbuild": "cd client && npm ci && npm run build",
+    "test": "mocha --timeout 10000"
   },
   "type": "module",
   "repository": {
@@ -41,7 +42,5 @@
     "multer": "1.4.4",
     "nodemailer": "6.7.2"
   },
-  "keywords": [
-    "kodebi"
-  ]
+  "keywords": ["kodebi"]
 }

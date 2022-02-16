@@ -41,6 +41,15 @@ const requestPasswordReset = async (req, res) => {
     "&id=" +
     user._id;
 
+  if (process.env.NODE_ENV === "test") {
+    // Get token directly for testing
+    return res.status(200).json({
+      message: "Benutzer erfolgreich erstellt!",
+      user: user._id,
+      token: resetToken
+    });
+  }
+
   sendPasswordResetMail(user.email, link);
 
   return res.status(200).json({

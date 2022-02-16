@@ -10,6 +10,7 @@ let should = chai.should();
 
 // Own db for testing
 process.env.MONGODB_URI = "mongodb://localhost:27017/testdb";
+process.env.NODE_ENV = "test";
 
 chai.use(chaiHttp);
 //Our parent block
