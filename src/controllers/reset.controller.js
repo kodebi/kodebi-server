@@ -46,7 +46,8 @@ const requestPasswordReset = async (req, res) => {
     return res.status(200).json({
       message: "Benutzer erfolgreich erstellt!",
       user: user._id,
-      token: resetToken
+      token: resetToken,
+      link: link
     });
   }
 

@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 import server from "../src/server";
 import bookModel from "../src/models/book.model";
+import Users from "../src/models/user.model";
 
 // For testing
 import chai from "chai";
 import chaiHttp from "chai-http";
+import "chai/register-should";
 
 let should = chai.should();
 
@@ -14,26 +16,53 @@ process.env.NODE_ENV = "test";
 
 chai.use(chaiHttp);
 //Our parent block
-describe("Books", () => {
+describe("Users", () => {
   beforeEach((done) => {
     //Before each test we empty the database
-    bookModel.remove({}, (err) => {
+    Users.remove({}, (err) => {
       done();
     });
   });
-  /*
-   * Test the /GET route
-   */
-  describe("/GET book", () => {
-    it("it should GET all the books", (done) => {
+
+  describe("/POST /api/users", () => {
+    it("Create a user", (done) => {
       chai
         .request(server)
-        .get("/api/books")
+        .post("/api/users")
+        .send({
+          username: "Testi",
+          email: "test@testi.de",
+          password: "tester1"
+        })
         .end((err, res) => {
+          if (err) {
+            done(err);
+          }
           res.should.have.status(200);
-          res.body.should.be.a("array");
-          res.body.length.should.be.eql(0);
-          done();
+          res.body.should.have.property("message");
+          res.body.should.have.property("user");
+          res.body.should.have.property("token");
+
+          const testToken = res.body.token;
+          const userId = res.body.user;
+          const postRoute = "/completeRegistration/" + testToken + "/" + userId;
+
+          chai
+            .request(server)
+            .get(postRoute)
+            // .send({
+            //   username: "Testi",
+            //   email: "test@testi.de",
+            //   password: "tester1"
+            // })
+            .end((err, res) => {
+              if (err) {
+                done(err);
+              }
+              res.should.have.status(200);
+              res.body.should.have.property("message");
+              done();
+            });
         });
     });
   });
