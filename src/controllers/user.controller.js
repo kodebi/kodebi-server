@@ -6,29 +6,30 @@ const create = async (req, res, next) => {
   // POST daher body
   req.body.activated = false;
   const user = new User(req.body);
-  try {
-    await user.save();
-    req.ownProfile._id = user._id;
-    req.ownProfile.email = user.email;
-    next();
-  } catch (err) {
-    return res.status(500).json({
-      what: err.name,
-      error: err.message
+  await user
+    .save()
+    .exec()
+    .catch((err) => {
+      return res.status(500).json({
+        what: err.name,
+        error: err.message
+      });
     });
-  }
+
+  req.ownProfile._id = user._id;
+  req.ownProfile.email = user.email;
+  next();
 };
 
 // Liste alle Benutzer auf
 const list = async (req, res) => {
   try {
-    let users = await User.find()
-      .select("name email updated created group")
-      .exec();
+    let users = await User.find().select("name").exec();
     res.json(users);
   } catch (err) {
     return res.status(500).json({
-      what: err.name
+      what: err.name,
+      error: err.message
     });
   }
 };

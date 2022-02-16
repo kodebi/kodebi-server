@@ -80,12 +80,12 @@ UserSchema.path("hashed_password").validate(function () {
 UserSchema.pre("save", function (next) {
   if (this.isNew) {
     const borrow = new BorrowedBooks();
-    const bookmark = new BookmarkedBooks();
     borrow.save();
+    const bookmark = new BookmarkedBooks();
     bookmark.save();
 
-    this.borrowedBooks = borrow;
-    this.bookmarkedBooks = bookmark;
+    this.borrowedBooks = borrow._id;
+    this.bookmarkedBooks = bookmark._id;
   }
   next();
 });
