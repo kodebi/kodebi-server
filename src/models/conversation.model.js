@@ -8,6 +8,7 @@ const ConversationSchema = new mongoose.Schema(
         ref: "User"
       }
     ],
+    // Use subdocuments!!
     messages: [
       {
         type: mongoose.Schema.Types.ObjectId,

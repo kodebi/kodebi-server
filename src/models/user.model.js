@@ -41,10 +41,12 @@ const UserSchema = new mongoose.Schema(
       }
     ],
     borrowedBooks: {
+      // maybe use subdocuments
       type: mongoose.Schema.Types.ObjectId,
       ref: "BorrowedBooks"
     },
     bookmarkedBooks: {
+      // maybe use subdocuments
       type: mongoose.Schema.Types.ObjectId,
       ref: "BookmarkedBooks"
     }
