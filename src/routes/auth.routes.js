@@ -4,6 +4,7 @@ import resetCtrl from "../controllers/reset.controller";
 import counterCtrl from "../controllers/counter.controller";
 import activationCtrl from "../controllers/activation.controller";
 
+// Route: /auth
 const router = express.Router();
 router.route("/signin").post(authCtrl.signin);
 router.route("/signout").get(authCtrl.signout);

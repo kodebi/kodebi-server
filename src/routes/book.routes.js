@@ -5,6 +5,7 @@ import imgCtrl from "../controllers/image.controller";
 import userCtrl from "../controllers/user.controller";
 import counterCtrl from "../controllers/counter.controller";
 
+// Route: /api/books
 const protectedRouter = express.Router();
 
 // Create book

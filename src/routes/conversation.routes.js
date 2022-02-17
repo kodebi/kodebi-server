@@ -2,6 +2,7 @@ import express from "express";
 import authCtrl from "../controllers/auth.controller";
 import conversationCtrl from "../controllers/conversation.controller";
 
+// Route: /api/messages
 const protectedRouter = express.Router();
 
 // Check auth first
