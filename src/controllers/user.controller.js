@@ -104,6 +104,7 @@ const update = async (req, res) => {
 // loesche user
 const remove = async (req, res) => {
   try {
+    // Just set inactive
     let user = req.profile;
     let deletedUser = await user.remove();
     deletedUser.hashed_password = undefined;

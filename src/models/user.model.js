@@ -40,6 +40,9 @@ const UserSchema = new mongoose.Schema(
         lowercase: true
       }
     ],
+    deletedAt: {
+      type: Date
+    },
     borrowedBooks: {
       // maybe use subdocuments
       type: mongoose.Schema.Types.ObjectId,
@@ -77,7 +80,7 @@ UserSchema.path("hashed_password").validate(function () {
   if (this.isNew && !this._password) {
     this.invalidate("password", "Password ist erforderlich");
   }
-}, null);
+}, "Passwort Fehler");
 
 UserSchema.pre("save", function (next) {
   if (this.isNew) {
