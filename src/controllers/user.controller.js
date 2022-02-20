@@ -1,126 +1,135 @@
 import User from "../models/user.model";
+import { BorrowedBooks, BookmarkedBooks } from "../models/bookList.model";
 import extend from "lodash/extend";
 
 // Erstelle Benutzer
 const create = async (req, res, next) => {
-  // POST daher body
-  req.body.activated = false;
-  const user = new User(req.body);
-  try {
-    await user.save();
-    req.ownProfile._id = user._id;
-    req.ownProfile.email = user.email;
-    next();
-  } catch (err) {
-    return res.status(500).json({
-      what: err.name,
-      error: err.message
-    });
-  }
+    // POST daher body
+    // init borrow and bookmarks lists
+    const borrow = new BorrowedBooks();
+    const bookmark = new BookmarkedBooks();
+    borrow.save();
+    bookmark.save();
+    req.body.borrowedBooks = borrow._id;
+    req.body.bookmarkedBooks = bookmark;
+    req.body.activated = false;
+
+    const user = new User(req.body);
+    try {
+        await user.save();
+        req.ownProfile._id = user._id;
+        req.ownProfile.email = user.email;
+        next();
+    } catch (err) {
+        return res.status(500).json({
+            what: err.name,
+            error: err.message
+        });
+    }
 };
 
 // Liste alle Benutzer auf
-const list = async (req, res) => {
-  try {
-    let users = await User.find()
-      .select("name email updated created group")
-      .exec();
-    res.json(users);
-  } catch (err) {
-    return res.status(500).json({
-      what: err.name
-    });
-  }
+const list = async (_, res) => {
+    try {
+        const users = await User.find()
+            .select("name email created group")
+            .exec();
+        res.json(users);
+    } catch (err) {
+        return res.status(500).json({
+            what: err.name
+        });
+    }
 };
 
 // Einzelne Benutzer finden
 // An die Anfrage anhaengen und weiterleiten
 const userByID = async (req, res, next) => {
-  try {
-    let user = await User.findById(req.params.userId).exec();
-    if (!user) {
-      return res.status(404).json({
-        error: "User nicht gefunden"
-      });
+    try {
+        let user = await User.findById(req.params.userId).exec();
+        if (!user) {
+            return res.status(404).json({
+                error: "User nicht gefunden"
+            });
+        }
+        user.hashed_password = undefined;
+        user.salt = undefined;
+        req.profile = user;
+        next();
+    } catch (err) {
+        return res.status(500).json({
+            error: "Could not retrieve user"
+        });
     }
-    user.hashed_password = undefined;
-    user.salt = undefined;
-    req.profile = user;
-    next();
-  } catch (err) {
-    return res.status(500).json({
-      error: "Could not retrieve user"
-    });
-  }
 };
 
 const getOwnUser = async (req, res, next) => {
-  try {
-    let user = await User.findById(req.auth._id).exec();
-    if (!user) {
-      return res.status(404).json({
-        error: "User nicht gefunden"
-      });
+    try {
+        let user = await User.findById(req.auth._id).exec();
+        if (!user) {
+            return res.status(404).json({
+                error: "User nicht gefunden"
+            });
+        }
+        user.hashed_password = undefined;
+        user.salt = undefined;
+        req.ownProfile = user;
+        next();
+    } catch (err) {
+        return res.status(500).json({
+            error: "Could not retrieve user"
+        });
     }
-    user.hashed_password = undefined;
-    user.salt = undefined;
-    req.ownProfile = user;
-    next();
-  } catch (err) {
-    return res.status(500).json({
-      error: "Could not retrieve user"
-    });
-  }
 };
 
 // Lese Benutzer, Entferne Passwort
 const read = (req, res) => {
-  req.profile.hashed_password = undefined;
-  req.profile.salt = undefined;
-  req.profile.group = undefined;
-  req.profile.borrowedBooks = undefined;
-  req.profile.bookmarkedBooks = undefined;
-  return res.json(req.profile);
+    req.profile.hashed_password = undefined;
+    req.profile.salt = undefined;
+    req.profile.group = undefined;
+    req.profile.borrowedBooks = undefined;
+    req.profile.bookmarkedBooks = undefined;
+    return res.json(req.profile);
 };
 
 // veraendere user
 const update = async (req, res) => {
-  try {
-    let user = req.profile;
-    // lodash - merge and extend user profile
-    user = extend(user, req.body);
-    await user.save();
-    user.hashed_password = undefined;
-    user.salt = undefined;
-    res.json(user);
-  } catch (err) {
-    return res.status(500).json({
-      what: err.name
-    });
-  }
+    try {
+        let user = req.profile;
+        // lodash - merge and extend user profile
+        user = extend(user, req.body);
+        await user.save();
+        user.hashed_password = undefined;
+        user.salt = undefined;
+        res.json(user);
+    } catch (err) {
+        return res.status(500).json({
+            what: err.name
+        });
+    }
 };
 
 // loesche user
 const remove = async (req, res) => {
-  try {
-    let user = req.profile;
-    let deletedUser = await user.remove();
-    deletedUser.hashed_password = undefined;
-    deletedUser.salt = undefined;
-    res.json(deletedUser);
-  } catch (err) {
-    return res.status(500).json({
-      what: err.name
-    });
-  }
+    try {
+        let user = req.profile;
+        let deletedUser = await user.remove();
+        deletedUser.hashed_password = undefined;
+        deletedUser.salt = undefined;
+        res.json(deletedUser);
+    } catch (err) {
+        return res.status(500).json({
+            what: err.name
+        });
+    }
 };
 
 export default {
-  create,
-  userByID,
-  getOwnUser,
-  read,
-  list,
-  remove,
-  update
+    create,
+    userByID,
+    getOwnUser,
+    read,
+    list,
+    remove,
+    update
 };
