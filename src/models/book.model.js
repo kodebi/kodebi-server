@@ -74,6 +74,9 @@ const BookSchema = new mongoose.Schema(
       type: String,
       trim: true,
       lowercase: true
+    },
+    deletedAt: {
+      type: Date
     }
   },
   {

@@ -24,12 +24,12 @@ db.on("disconnected", () => {
 db.on("reconnected", () => {
   console.info("reconnected to database: " + config.mongoUri);
 });
-db.on("error", () => {
+db.on("error", (error) => {
   console.error("database: error: " + error);
   process.exit(1);
 });
 
-const startServer = () => {
+function startServer() {
   app.listen(config.port, (err) => {
     if (err) {
       console.log(err);
@@ -37,6 +37,6 @@ const startServer = () => {
     }
     console.info("Server started on port %s.", config.port);
   });
-};
+}
 
 export default app; // for testing

@@ -170,6 +170,8 @@ const deleteConvByID = async (req, res) => {
       // remove one element after pos (e.g. only the element on pos)
       recipients.splice(pos, 1);
 
+      // Delete messages
+
       conv.recipients = recipients;
       await conv.save();
 

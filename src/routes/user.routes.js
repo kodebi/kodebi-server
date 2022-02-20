@@ -3,6 +3,7 @@ import userCtrl from "../controllers/user.controller";
 import authCtrl from "../controllers/auth.controller";
 import activationCtrl from "../controllers/activation.controller";
 
+// Route: /api/users
 const protectedRouter = express.Router();
 
 protectedRouter.route("/").get(userCtrl.list); // Show users with GET

@@ -40,11 +40,16 @@ const UserSchema = new mongoose.Schema(
         lowercase: true
       }
     ],
+    deletedAt: {
+      type: Date
+    },
     borrowedBooks: {
+      // maybe use subdocuments
       type: mongoose.Schema.Types.ObjectId,
       ref: "BorrowedBooks"
     },
     bookmarkedBooks: {
+      // maybe use subdocuments
       type: mongoose.Schema.Types.ObjectId,
       ref: "BookmarkedBooks"
     }
@@ -75,17 +80,17 @@ UserSchema.path("hashed_password").validate(function () {
   if (this.isNew && !this._password) {
     this.invalidate("password", "Password ist erforderlich");
   }
-}, null);
+}, "Passwort Fehler");
 
 UserSchema.pre("save", function (next) {
   if (this.isNew) {
     const borrow = new BorrowedBooks();
-    const bookmark = new BookmarkedBooks();
     borrow.save();
+    const bookmark = new BookmarkedBooks();
     bookmark.save();
 
-    this.borrowedBooks = borrow;
-    this.bookmarkedBooks = bookmark;
+    this.borrowedBooks = borrow._id;
+    this.bookmarkedBooks = bookmark._id;
   }
   next();
 });

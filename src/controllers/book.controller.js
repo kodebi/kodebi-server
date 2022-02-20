@@ -137,7 +137,7 @@ const updateImage = async (req, res) => {
 const remove = async (req, res) => {
   try {
     let book = req.book;
-
+    // Just set inactive
     //löscht die restlichen Buchdaten
     let deletedBook = await book.remove();
 

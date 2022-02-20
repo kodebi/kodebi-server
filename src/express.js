@@ -4,10 +4,10 @@ import compress from "compression";
 import cors from "cors";
 import helmet from "helmet";
 import mainRoutes from "./routes/main.routes";
-import path from "path";
-import config from "./config/config";
+// import path from "path";
+// import config from "./config/config";
 
-const CURRENT_WORKING_DIR = process.cwd();
+// const CURRENT_WORKING_DIR = process.cwd();
 const app = express();
 
 // Middleware
@@ -25,17 +25,17 @@ app.use(
       styleSrc: ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"],
       fontSrc: ["https://fonts.gstatic.com"],
       imgSrc: ["'self'", "https://ik.imagekit.io"],
-      baseUri: ["'self'"],
-    },
+      baseUri: ["'self'"]
+    }
   })
 );
 // Cross Origin Resource Sharing
 app.use(cors());
 
 // Serve up static files when deployed
-if (config.env === "production") {
-  app.use(express.static(path.join(CURRENT_WORKING_DIR, "client/build")));
-}
+// if (config.env === "production") {
+//   app.use(express.static(path.join(CURRENT_WORKING_DIR, "client/build")));
+// }
 
 // use morgan + winston for logging
 // Use rate-limiter
