@@ -21,10 +21,10 @@
   },
   "homepage": "https://github.com/kodebi/kodebi-server#readme",
   "devDependencies": {
-    "chai": "4.3.6",
-    "mocha": "9.2.0",
     "nodemon": "^2.0.15",
-    "prettier": "2.4.1"
+    "prettier": "2.4.1",
+    "mocha": "9.2.0",
+    "chai": "4.3.6"
   },
   "dependencies": {
     "compression": "1.7.4",
