@@ -1,6 +1,6 @@
 {
     "name": "kodebi-server",
-    "version": "0.2",
+    "version": "0.2.1",
     "description": "",
     "main": "src/server.js",
     "scripts": {

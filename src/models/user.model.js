@@ -21,7 +21,10 @@ const UserSchema = new mongoose.Schema(
             lowercase: true,
             trim: true,
             unique: true,
-            match: [/.+\@.+\..+/, "Bitte gib eine gueltige Email Adresse an"],
+            match: [
+                /^.+@(?:[\w-]+\.)+\w+$/,
+                "Bitte gib eine gueltige Email Adresse an"
+            ],
             required: [true, "Email ist erforderlich"]
         },
         hashed_password: {

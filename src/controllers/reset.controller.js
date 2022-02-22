@@ -11,7 +11,6 @@ const requestPasswordReset = async (req, res) => {
             error: "Benutzer nicht gefunden"
         });
     }
-    // Mask Users?
 
     let oldtoken = await passwordResetToken.findOne({ user: user._id });
     if (oldtoken) {
