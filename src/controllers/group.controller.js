@@ -1,45 +1,47 @@
-// Gruppen Auth
-// Gehoert der Nutzer der Gruppe an?
-const hasGroupAuthorization = (req, res, next) => {
-  let isPartOfGroup = false;
-  console.log(req.auth);
-  console.log(req.profile);
-  console.log(req.conv);
-  console.log(req.book);
-
-  req.auth.group.forEach((group) => {
-    if (typeof req.conv !== 'undefined') {
-      if (group == req.conv.group) {
-        isPartOfGroup = true;
-        console.log('conv');
-      }
-    }
-    if (typeof req.book !== 'undefined') {
-      if (group == req.book.group) {
-        isPartOfGroup = true;
-        console.log('book');
-      }
-    }
-    if (typeof req.profile !== 'undefined') {
-      req.profile.group.forEach((member) => {
-        if (group == member) {
-          isPartOfGroup = true;
-          console.log('member');
+const hasBookGroup = (req, res, next) => {
+    if (req.auth && req.book.group) {
+        const hasGroup = req.auth.groups.some(
+            (group) => group === req.book.group
+        );
+        if (hasGroup) {
+            next();
         }
-      });
     }
-  });
-
-  const authorized = req.auth && isPartOfGroup;
-
-  if (!authorized) {
-    return res.status('403').json({
-      error: 'User is not authorized',
+    return res.status("403").json({
+        error: "User is not authorized"
     });
-  }
-  next();
+};
+
+const hasUserGroup = (req, res, next) => {
+    if (req.auth && req.profile.group) {
+        const hasGroup = req.auth.groups.some(
+            (group) => group === req.profile.group
+        );
+        if (hasGroup) {
+            next();
+        }
+    }
+    return res.status("403").json({
+        error: "User is not authorized"
+    });
+};
+
+const hasConvGroup = (req, res, next) => {
+    if (req.auth && req.conv.group) {
+        const hasGroup = req.auth.groups.some(
+            (group) => group === req.conv.group
+        );
+        if (hasGroup) {
+            next();
+        }
+    }
+    return res.status("403").json({
+        error: "User is not authorized"
+    });
 };
 
 export default {
-  hasGroupAuthorization,
+    hasBookGroup,
+    hasUserGroup,
+    hasConvGroup
 };

@@ -30,7 +30,7 @@ const signin = async (req, res) => {
             {
                 _id: user._id,
                 name: user.name,
-                group: user.group
+                groups: user.groups
             },
             config.jwtSecret,
             {
@@ -50,7 +50,7 @@ const signin = async (req, res) => {
                 _id: user._id,
                 name: user.name,
                 email: user.email,
-                group: user.group
+                groups: user.groups
             }
         });
     } catch (err) {

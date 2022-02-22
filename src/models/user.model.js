@@ -36,7 +36,7 @@ const UserSchema = new mongoose.Schema(
             type: Boolean,
             default: false
         },
-        group: [
+        groups: [
             {
                 type: String,
                 trim: true,
