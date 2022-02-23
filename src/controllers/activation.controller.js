@@ -14,7 +14,7 @@ const failedUserActivation = async (req, res, next) => {
     // Add mail and id to request to rerequest the activation token
     req.ownProfile._id = user._id;
     req.ownProfile.email = user.email;
-    next();
+    return next();
 };
 
 const requestUserActivation = async (req, res) => {

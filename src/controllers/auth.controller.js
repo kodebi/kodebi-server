@@ -90,7 +90,7 @@ const hasAuthorization = (req, res, next) => {
             error: "Benutzer ist nicht berechtigt"
         });
     }
-    next();
+    return next();
 };
 
 const hasAuthorizationForNewMessage = (req, res, next) => {
@@ -101,7 +101,7 @@ const hasAuthorizationForNewMessage = (req, res, next) => {
             error: "Benutzer ist nicht der Sender der neuen Nachricht"
         });
     }
-    next();
+    return next();
 };
 
 const hasAuthorizationForConversation = (req, res, next) => {
@@ -116,7 +116,7 @@ const hasAuthorizationForConversation = (req, res, next) => {
             error: "Benutzer ist nicht Teil der Unterhaltung"
         });
     }
-    next();
+    return next();
 };
 
 //Dürfen BenutzerInnen etwas an einem Buch ändern?
@@ -127,7 +127,7 @@ const hasAuthorizationForBook = (req, res, next) => {
             error: "Benutzer ist nicht berechtigt für das Buch"
         });
     }
-    next();
+    return next();
 };
 
 export default {

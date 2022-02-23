@@ -81,7 +81,7 @@ const bookByID = async (req, res, next) => {
             });
         }
         req.book = book;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
             what: err.name

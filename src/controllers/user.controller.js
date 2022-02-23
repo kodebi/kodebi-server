@@ -29,7 +29,7 @@ const create = async (req, res, next) => {
 
     req.ownProfile._id = user._id;
     req.ownProfile.email = user.email;
-    next();
+    return next();
 };
 
 // Liste alle Benutzer auf
@@ -66,7 +66,7 @@ const userByID = async (req, res, next) => {
             });
         }
         req.profile = user;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
             error: "Could not retrieve user"
@@ -86,7 +86,7 @@ const getOwnUser = async (req, res, next) => {
             });
         }
         req.ownProfile = user;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
             error: "Could not retrieve user"

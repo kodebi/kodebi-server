@@ -4,7 +4,7 @@ const hasBookGroup = (req, res, next) => {
             (group) => group === req.book.group
         );
         if (hasGroup) {
-            next();
+            return next();
         }
     }
     return res.status("403").json({
@@ -18,7 +18,7 @@ const hasUserGroup = (req, res, next) => {
             (group) => group === req.profile.group
         );
         if (hasGroup) {
-            next();
+            return next();
         }
     }
     return res.status("403").json({
@@ -32,7 +32,7 @@ const hasConvGroup = (req, res, next) => {
             (group) => group === req.conv.group
         );
         if (hasGroup) {
-            next();
+            return next();
         }
     }
     return res.status("403").json({

@@ -40,7 +40,7 @@ const UploadImageToMemory = upload.single("bookImage");
 
 const ShowUploadInfo = (req, res, next) => {
     console.log("File upload to memory successfull.");
-    next();
+    return next();
 };
 
 const UploadBookImageToImagekit = (req, res, next) => {
@@ -57,7 +57,7 @@ const UploadBookImageToImagekit = (req, res, next) => {
             res.locals.BookUrl = response.url;
             // Add the image id to the response for deleting
             res.locals.BookImageId = response.fileId;
-            next();
+            return next();
         })
         .catch((error) => {
             res.send(error);
@@ -73,7 +73,7 @@ const MoveBookToDeleteFolder = (req, res, next) => {
     imagekitUpload
         .moveFile(sourceFilePath, destinationPath)
         .then((_) => {
-            next();
+            return next();
         })
         .catch((error) => {
             res.send(error);
@@ -103,6 +103,7 @@ const DeleteBookImage = (req, res, next) => {
             if (error) {
                 console.log(error);
             } else {
+                return next();
                 console.log(result);
             }
         });

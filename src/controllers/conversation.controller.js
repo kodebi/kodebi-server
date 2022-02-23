@@ -79,7 +79,7 @@ const getConvByUser = async (req, res, next) => {
 
         // Add found conversations to req for counting
         req.conv = convs;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
             what: err.name
@@ -112,7 +112,7 @@ const convByID = async (req, res, next) => {
         }
 
         req.conv = conv;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
             what: err.name,
