@@ -2,7 +2,7 @@ import express from "express";
 import userCtrl from "../controllers/user.controller";
 import authCtrl from "../controllers/auth.controller";
 import activationCtrl from "../controllers/activation.controller";
-import { userValidationRules, validate } from "../helpers/validator";
+import { userValidator, validate } from "../helpers/validator";
 
 // Route: /api/users
 const protectedRouter = express.Router();
@@ -20,8 +20,7 @@ const router = express.Router();
 router
     .route("/")
     .post(
-        userValidationRules,
-        validate,
+        validate(userValidator),
         userCtrl.create,
         activationCtrl.requestUserActivation
     ); // Create user with POST

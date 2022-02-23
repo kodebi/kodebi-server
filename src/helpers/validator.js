@@ -1,25 +1,35 @@
-import { body, validationResult } from "express-validator";
+import { body, validationResult, matchedData } from "express-validator";
 
-const userValidationRules = () => {
+const userValidator = () => {
     return [
-        // username must be an email
-        body("username").isEmail(),
-        // password must be at least 5 chars long
-        body("password").isLength({ min: 6 })
+        body("email").isEmail().normalizeEmail(),
+        body("password").isLength({ min: 6 }),
+        body("name").isLength({ min: 2 }).escape().stripLow()
     ];
 };
 
-const validate = (req, res, next) => {
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-        return next();
-    }
-    const extractedErrors = [];
-    errors.array().map((err) => extractedErrors.push({ [err.param]: err.msg }));
+const validate = (schemas) => {
+    return async (req, res, next) => {
+        await Promise.all(schemas.map((schema) => schema.run(req)));
 
-    return res.status(422).json({
-        error: extractedErrors
-    });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            // req.matchedData = matchedData(req, locations: ["body"]);
+            return next();
+        }
+
+        // const extractedErrors = [];
+        // errors.array().map((err) => extractedErrors.push({ [err.param]: err.msg }));
+
+        // return res.status(422).json({
+        //     error: extractedErrors
+        // });
+
+        const errors = result.array();
+        return res.status(422).json({
+            errors
+        });
+    };
 };
 
-export { userValidationRules, validate };
+export { userValidator, validate };
