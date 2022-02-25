@@ -99,17 +99,17 @@ UserSchema.methods = {
     },
     encryptPassword: function (password) {
         if (!password) return "";
-        try {
-            const passwordBuffer = Buffer.from(password, "utf8");
-            return crypto
-                .scryptSync(passwordBuffer, this.salt, 64)
-                .toString("hex");
-        } catch (err) {
-            return "";
-        }
+        const passwordBuffer = Buffer.from(password, "utf8");
+        crypto.scrypt(passwordBuffer, this.salt, 64, (err, pwHash) => {
+            if (err) throw err;
+            return pwHash.toString("hex");
+        });
     },
     makeSalt: function () {
-        return Math.round(new Date().valueOf() * Math.random()) + "";
+        crypto.randomBytes(20, (err, buf) => {
+            if (err) throw err;
+            return buf.toString("hex");
+        });
     }
 };
 
