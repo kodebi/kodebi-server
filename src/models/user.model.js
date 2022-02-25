@@ -100,7 +100,8 @@ UserSchema.methods = {
     encryptPassword: function (password) {
         if (!password) return "";
         const passwordBuffer = Buffer.from(password, "utf8");
-        crypto.scrypt(passwordBuffer, this.salt, 64, (err, pwHash) => {
+        const saltBuffer = Buffer.from(this.salt, "utf8");
+        crypto.scrypt(passwordBuffer, saltBuffer, 64, (err, pwHash) => {
             if (err) throw err;
             return pwHash.toString("hex");
         });
