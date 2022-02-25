@@ -8,14 +8,18 @@ const MessageSchema = new mongoose.Schema(
             ref: "User"
         },
         senderName: {
-            type: String
+            type: String,
+            minLength: [2, "Sender Name zu kurz"],
+            maxLength: [20, "Sender Name zu lang"]
         },
         recieverId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
         },
         recieverName: {
-            type: String
+            type: String,
+            minLength: [2, "Empfänger Name zu kurz"],
+            maxLength: [20, "Empfänger Name zu lang"]
         },
         message_encrypt: {
             type: String,

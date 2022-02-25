@@ -1,8 +1,7 @@
 import extend from "lodash/extend";
 import Book from "../models/book.model";
 import User from "../models/user.model";
-import BorrowedBookList from "../models/bookList.model";
-import BookmarkedBooks from "../models/bookList.model";
+import { BorrowedBooks, BookmarkedBooks } from "./bookList.model";
 
 //Buch wird erstellt
 const create = async (req, res) => {
@@ -168,17 +167,17 @@ const borrow = async (req, res) => {
         book.status = "Verliehen";
         await book.save();
 
-        await BorrowedBookList.findByIdAndUpdate(
+        await BorrowedBooks.findByIdAndUpdate(
             borrowListId,
-            { $push: { borrowedBookList: book } },
+            { $push: { books: book } },
             { upsert: true }
         ).exec();
 
-        await BorrowedBookList.findByIdAndUpdate(
+        await BorrowedBooks.findByIdAndUpdate(
             ownBorrowListId,
             {
-                $push: { borrowedBookList: book },
-                $inc: { totalBorrowedBooks: 1 }
+                $push: { books: book },
+                $inc: { counter: 1 }
             },
             { upsert: true }
         ).exec();
@@ -197,8 +196,8 @@ const borrow = async (req, res) => {
 const getBorrowed = async (req, res) => {
     try {
         const borrowedId = req.ownProfile.borrowedBooks._id;
-        const borrowed = await BorrowedBookList.findById(borrowedId)
-            .populate("borrowedBookList")
+        const borrowed = await BorrowedBooks.findById(borrowedId)
+            .populate("books")
             .exec();
 
         return res.status(200).json(borrowed);
@@ -216,7 +215,7 @@ const bookmark = async (req, res) => {
 
         await BookmarkedBooks.findByIdAndUpdate(
             bookmarksId,
-            { $push: { bookmarkedBookList: book } },
+            { $push: { books: book } },
             { new: true, upsert: true }
         ).exec();
 
@@ -236,7 +235,7 @@ const deleteBookmark = async (req, res) => {
         let book = req.book;
 
         await BookmarkedBooks.findByIdAndUpdate(bookmarksId, {
-            $pull: { bookmarkedBookList: book }
+            $pull: { books: book }
         }).exec();
 
         return res.status(201).json({
@@ -253,7 +252,7 @@ const getBookmarks = async (req, res) => {
     try {
         const bookmarksId = req.profile.bookmarkedBooks._id;
         const bookmarks = await BookmarkedBooks.findById(bookmarksId)
-            .populate("bookmarkedBookList")
+            .populate("books")
             .exec();
 
         return res.status(200).json(bookmarks);
@@ -270,12 +269,12 @@ const returnBook = async (req, res) => {
         let book = req.book;
         const borrower = await User.findById(req.book.borrowerId);
 
-        await BorrowedBookList.findByIdAndUpdate(ownBorrowListId, {
-            $pull: { borrowedBookList: book }
+        await BorrowedBooks.findByIdAndUpdate(ownBorrowListId, {
+            $pull: { books: book }
         }).exec();
 
-        await BorrowedBookList.findByIdAndUpdate(borrower.borrowedBooks, {
-            $pull: { borrowedBookList: book }
+        await BorrowedBooks.findByIdAndUpdate(borrower.borrowedBooks, {
+            $pull: { books: book }
         }).exec();
 
         book.status = "Bereit zum Verleihen";

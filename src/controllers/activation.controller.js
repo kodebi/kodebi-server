@@ -98,7 +98,7 @@ async function sendRegisterUserMail(mailTo, resetLink) {
 }
 
 const activateUser = async (req, res) => {
-    // We need userid, reset token
+    // We need userid, token
     const activateToken = await registrationToken
         .findOne({ user: req.params.userId })
         .exec();

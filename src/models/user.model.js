@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
-import BorrowedBooks from "./bookList.model";
-import BookmarkedBooks from "./bookList.model";
+import { BorrowedBooks, BookmarkedBooks } from "./bookList.model";
 
 const UserSchema = new mongoose.Schema(
     {
         name: {
             type: String,
             trim: true,
-            required: [true, "Name ist erforderlich"]
+            required: [true, "Name ist erforderlich"],
+            minLength: [2, "Name zu kurz"],
+            maxLength: [20, "Name zu lang"]
         },
         image: {
             type: String
@@ -40,7 +41,9 @@ const UserSchema = new mongoose.Schema(
             {
                 type: String,
                 trim: true,
-                lowercase: true
+                lowercase: true,
+                minLength: [2, "Gruppen Name zu kurz"],
+                maxLength: [20, "Gruppen Name  zu lang"]
             }
         ],
         deletedAt: {
