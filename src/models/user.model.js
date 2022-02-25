@@ -85,7 +85,7 @@ UserSchema.pre("save", function (next) {
         this.borrowedBooks = borrow._id;
         this.bookmarkedBooks = bookmark._id;
     }
-    next();
+    return next();
 });
 
 UserSchema.methods = {
