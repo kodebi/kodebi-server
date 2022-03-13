@@ -2,6 +2,7 @@ import express from "express";
 import userCtrl from "../controllers/user.controller";
 import authCtrl from "../controllers/auth.controller";
 import activationCtrl from "../controllers/activation.controller";
+import { userValidator, validate } from "../helpers/validator";
 
 // Route: /api/users
 const protectedRouter = express.Router();
@@ -9,13 +10,19 @@ const protectedRouter = express.Router();
 protectedRouter.route("/").get(userCtrl.list); // Show users with GET
 
 protectedRouter
-  .route("/:userId")
-  .all(userCtrl.userByID)
-  .get(userCtrl.read) // Showing a user with GET
-  .put(authCtrl.hasAuthorization, userCtrl.update) // Update with PUT
-  .delete(authCtrl.hasAuthorization, userCtrl.remove); // Remove with DELETE
+    .route("/:userId")
+    .all(userCtrl.userByID)
+    .get(userCtrl.read) // Showing a user with GET
+    .put(authCtrl.hasAuthorization, userCtrl.update) // Update with PUT
+    .delete(authCtrl.hasAuthorization, userCtrl.remove); // Remove with DELETE
 
 const router = express.Router();
-router.route("/").post(userCtrl.create, activationCtrl.requestUserActivation); // Create user with POST
+router
+    .route("/")
+    .post(
+        validate(userValidator),
+        userCtrl.create,
+        activationCtrl.requestUserActivation
+    ); // Create user with POST
 
 export default { protectedRouter, router };

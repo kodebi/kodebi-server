@@ -18,20 +18,16 @@ app.use(compress());
 
 // Secure app
 app.use(
-    helmet.contentSecurityPolicy({
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
-            styleSrc: [
-                "'self'",
-                "https://fonts.googleapis.com",
-                "'unsafe-inline'"
-            ],
-            fontSrc: ["https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "https://ik.imagekit.io"],
-            baseUri: ["'self'"]
-        }
-    })
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"],
+      fontSrc: ["https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "https://ik.imagekit.io"],
+      baseUri: ["'self'"]
+    }
+  })
 );
 // Cross Origin Resource Sharing
 app.use(cors());
@@ -46,7 +42,7 @@ app.use(cors());
 // rate-limiter-flexible
 
 // mount routes
-app.use("/", mainRoutes);
+app.use("/", mainRoutes.mainRouter);
 
 // app.get("*", (req, res) => {
 //   res.sendFile(path.join(CURRENT_WORKING_DIR + "/client/dist/index.html"));

@@ -33,7 +33,7 @@ describe("Users", () => {
 
     describe("/POST /api/users", () => {
         it("Create a dummy user", (done) => {
-            chai.request(app)
+            chai.request(server)
                 .post("/api/users")
                 .send({
                     username: "Dummy",
@@ -57,7 +57,7 @@ describe("Users", () => {
                         "/" +
                         dummyUserId;
 
-                    chai.request(app)
+                    chai.request(server)
                         .get(activationRoute)
                         .end((err, res) => {
                             if (err) {
@@ -77,7 +77,7 @@ describe("Users", () => {
 
     describe("/POST /api/users", () => {
         it("Create a user", (done) => {
-            chai.request(app)
+            chai.request(server)
                 .post("/api/users")
                 .send({
                     username: username,
@@ -98,7 +98,7 @@ describe("Users", () => {
                     const activationRoute =
                         "/completeRegistration/" + testToken + "/" + userId;
 
-                    chai.request(app)
+                    chai.request(server)
                         .get(activationRoute)
                         .end((err, res) => {
                             if (err) {
@@ -117,7 +117,7 @@ describe("Users", () => {
 
     describe("/POST /auth/signin", () => {
         it("The new user signs in", (done) => {
-            chai.request(app)
+            chai.request(server)
                 .post("/api/users")
                 .send({
                     email: email,
@@ -141,7 +141,7 @@ describe("Users", () => {
 
     describe("/GET /api/users/userid", () => {
         it("Get User by UserId", (done) => {
-            chai.request(app)
+            chai.request(server)
                 .auth(authToken, { type: "bearer" })
                 // .set({ Authorization: `Bearer ${authToken}` })
                 .post("/api/users/" + userId)
@@ -162,7 +162,7 @@ describe("Users", () => {
 
     describe("/PUT /api/users/userid", () => {
         it("Change own user", (done) => {
-            chai.request(app)
+            chai.request(server)
                 .auth(authToken, { type: "bearer" })
                 .put("/api/users/" + userId)
                 .send({
@@ -184,7 +184,7 @@ describe("Users", () => {
 
     describe("/PUT /api/users/userid", () => {
         it("Try to change other user", (done) => {
-            chai.request(app)
+            chai.request(server)
                 .auth(authToken, { type: "bearer" })
                 .put("/api/users/" + dummyUserId)
                 .send({
@@ -205,7 +205,7 @@ describe("Users", () => {
 
     describe("/DELETE /api/users/userid", () => {
         it("Try to Delete other user", (done) => {
-            chai.request(app)
+            chai.request(server)
                 .auth(authToken, { type: "bearer" })
                 .delete("/api/users/" + dummyUserId)
                 .end((err, res) => {
@@ -222,7 +222,7 @@ describe("Users", () => {
 
     describe("/DELETE /api/users/userid", () => {
         it("Delete own user", (done) => {
-            chai.request(app)
+            chai.request(server)
                 .auth(authToken, { type: "bearer" })
                 .delete("/api/users/" + userId)
                 .end((err, res) => {
@@ -240,7 +240,7 @@ describe("Users", () => {
 
     describe("/GET /api/users/userid", () => {
         it("Deleted user get User by UserId", (done) => {
-            chai.request(app)
+            chai.request(server)
                 .auth(authToken, { type: "bearer" })
                 // .set({ Authorization: `Bearer ${authToken}` })
                 .post("/api/users/" + userId)

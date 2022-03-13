@@ -1,13 +1,15 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
-import { BorrowedBooks, BookmarkedBooks } from "../models/bookList.model";
+import { BorrowedBooks, BookmarkedBooks } from "./bookList.model";
 
 const UserSchema = new mongoose.Schema(
     {
         name: {
             type: String,
             trim: true,
-            required: [true, "Name ist erforderlich"]
+            required: [true, "Name ist erforderlich"],
+            minLength: [2, "Name zu kurz"],
+            maxLength: [20, "Name zu lang"]
         },
         image: {
             type: String
@@ -20,7 +22,10 @@ const UserSchema = new mongoose.Schema(
             lowercase: true,
             trim: true,
             unique: true,
-            match: [/.+\@.+\..+/, "Bitte gib eine gueltige Email Adresse an"],
+            match: [
+                /^.+@(?:[\w-]+\.)+\w+$/,
+                "Bitte gib eine gueltige Email Adresse an"
+            ],
             required: [true, "Email ist erforderlich"]
         },
         hashed_password: {
@@ -32,11 +37,13 @@ const UserSchema = new mongoose.Schema(
             type: Boolean,
             default: false
         },
-        group: [
+        groups: [
             {
                 type: String,
                 trim: true,
-                lowercase: true
+                lowercase: true,
+                minLength: [2, "Gruppen Name zu kurz"],
+                maxLength: [20, "Gruppen Name  zu lang"]
             }
         ],
         deletedAt: {
@@ -58,28 +65,18 @@ const UserSchema = new mongoose.Schema(
     }
 );
 
-UserSchema.virtual("password")
-    .set(function (password) {
-        this._password = password;
-        this.salt = this.makeSalt();
-        this.hashed_password = this.encryptPassword(password);
-    })
-    .get(function () {
-        return this._password;
-    });
+UserSchema.virtual("password").set(function (password) {
+    this.salt = this.makeSalt();
+    this.hashed_password = this.encryptPassword(password);
+    this._password = password;
+});
 
 UserSchema.path("hashed_password").validate(function () {
-    // if (this.getUpdate().$set.password) for pw update
-    if (this._password && this._password.length < 6) {
-        this.invalidate(
-            "password",
-            "Password muss mindestens 6 Zeichen lang sein."
-        );
+    if (this._password && this._password.lenght < 6) {
+        return false;
     }
-    if (this.isNew && !this._password) {
-        this.invalidate("password", "Password ist erforderlich");
-    }
-}, "Passwort Fehler");
+    return true;
+});
 
 UserSchema.pre("save", function (next) {
     if (this.isNew) {
@@ -91,7 +88,7 @@ UserSchema.pre("save", function (next) {
         this.borrowedBooks = borrow._id;
         this.bookmarkedBooks = bookmark._id;
     }
-    next();
+    return next();
 });
 
 UserSchema.methods = {
@@ -105,17 +102,18 @@ UserSchema.methods = {
     },
     encryptPassword: function (password) {
         if (!password) return "";
-        try {
-            const passwordBuffer = Buffer.from(password, "utf8");
-            return crypto
-                .scryptSync(passwordBuffer, this.salt, 64)
-                .toString("hex");
-        } catch (err) {
-            return "";
-        }
+        const passwordBuffer = Buffer.from(password, "utf8");
+        const saltBuffer = Buffer.from(this.salt, "utf8");
+        crypto.scrypt(passwordBuffer, saltBuffer, 64, (err, pwHash) => {
+            if (err) throw err;
+            return pwHash.toString("hex");
+        });
     },
     makeSalt: function () {
-        return Math.round(new Date().valueOf() * Math.random()) + "";
+        crypto.randomBytes(20, (err, buf) => {
+            if (err) throw err;
+            return buf.toString("hex");
+        });
     }
 };
 

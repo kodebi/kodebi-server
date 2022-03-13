@@ -1,7 +1,7 @@
 import extend from "lodash/extend";
 import Book from "../models/book.model";
 import User from "../models/user.model";
-import { BorrowedBooks, BookmarkedBooks } from "../models/bookList.model";
+import { BorrowedBooks, BookmarkedBooks } from "./bookList.model";
 
 //Buch wird erstellt
 const create = async (req, res) => {
@@ -10,20 +10,20 @@ const create = async (req, res) => {
         req.body.ownerName = req.auth.name;
         req.body.ownerId = req.auth._id;
 
-        const book = new Book(req.body);
-        try {
-            book.image = res.locals.BookUrl;
-            book.imagekitIoId = res.locals.BookImageId;
-        } catch (err) {
+        if (!res.locals.BookUrl || !res.locals.BookImageId) {
             return res.status(400).json({
-                message: "You need to upload an image"
+                message: "Dein Buch braucht ein Bild"
             });
         }
+
+        const book = new Book(req.body);
+        book.image = res.locals.BookUrl;
+        book.imagekitIoId = res.locals.BookImageId;
+
         await book.save();
         return res.status(200).json({
-            message: "Book upload successful!",
-            book: book,
-            image: res.locals.BookUrl
+            message: "Buch erfolgreich erstellt!",
+            book: book
         });
     } catch (err) {
         return res.status(500).json({
@@ -36,8 +36,10 @@ const create = async (req, res) => {
 //Liste aller Bücher
 const list = async (req, res) => {
     try {
-        let bookList = await Book.find().select(
-            "name author image category owner language status updated created"
+        const bookList = await Book.find({
+            deletedAt: { $ne: undefined }
+        }).select(
+            "name author image category ownerId ownerName language status"
         );
         res.json(bookList);
     } catch (err) {
@@ -51,10 +53,13 @@ const list = async (req, res) => {
 const bookByUser = async (req, res) => {
     try {
         // exec -> lean
-        let books = await Book.find({ owner: req.params.userId }).exec();
+        const books = await Book.find({
+            owner: req.params.userId,
+            deletedAt: { $ne: undefined }
+        }).exec();
         if (!books) {
             return res.status(404).json({
-                error: "User has no books"
+                error: "Benutzer hat noch keine Bücher"
             });
         }
         res.json(books);
@@ -68,14 +73,14 @@ const bookByUser = async (req, res) => {
 //Buch über Buch-ID auswählen
 const bookByID = async (req, res, next) => {
     try {
-        let book = await Book.findById(req.params.bookId);
+        const book = await Book.findById(req.params.bookId);
         if (!book) {
             return res.status(404).json({
-                error: "Book not found"
+                error: "Buch nicht gefunden"
             });
         }
         req.book = book;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
             what: err.name
@@ -143,12 +148,12 @@ const updateImage = async (req, res) => {
 const remove = async (req, res) => {
     try {
         let book = req.book;
-        // Just set inactive
-        //löscht die restlichen Buchdaten
-        let deletedBook = await book.remove();
+        // Set inactive
+        book.deletedAt = Date.now();
+        let deletedBook = await book.save();
 
         return res.status(200).json({
-            message: "Book successfully deleted!",
+            message: "Buch erfolgreich gelöscht!",
             book: deletedBook
         });
     } catch (err) {
@@ -171,13 +176,16 @@ const borrow = async (req, res) => {
 
         await BorrowedBooks.findByIdAndUpdate(
             borrowListId,
-            { $push: { BorrowedBooks: book } },
+            { $push: { books: book } },
             { upsert: true }
         ).exec();
 
         await BorrowedBooks.findByIdAndUpdate(
             ownBorrowListId,
-            { $push: { BorrowedBooks: book }, $inc: { totalBorrowedBooks: 1 } },
+            {
+                $push: { books: book },
+                $inc: { counter: 1 }
+            },
             { upsert: true }
         ).exec();
 
@@ -196,7 +204,7 @@ const getBorrowed = async (req, res) => {
     try {
         const borrowedId = req.ownProfile.borrowedBooks._id;
         const borrowed = await BorrowedBooks.findById(borrowedId)
-            .populate("BorrowedBooks")
+            .populate("books")
             .exec();
 
         return res.status(200).json(borrowed);
@@ -214,7 +222,7 @@ const bookmark = async (req, res) => {
 
         await BookmarkedBooks.findByIdAndUpdate(
             bookmarksId,
-            { $push: { bookmarkedBookList: book } },
+            { $push: { books: book } },
             { new: true, upsert: true }
         ).exec();
 
@@ -234,7 +242,7 @@ const deleteBookmark = async (req, res) => {
         let book = req.book;
 
         await BookmarkedBooks.findByIdAndUpdate(bookmarksId, {
-            $pull: { bookmarkedBookList: book }
+            $pull: { books: book }
         }).exec();
 
         return res.status(201).json({
@@ -251,7 +259,7 @@ const getBookmarks = async (req, res) => {
     try {
         const bookmarksId = req.profile.bookmarkedBooks._id;
         const bookmarks = await BookmarkedBooks.findById(bookmarksId)
-            .populate("bookmarkedBookList")
+            .populate("books")
             .exec();
 
         return res.status(200).json(bookmarks);
@@ -269,11 +277,11 @@ const returnBook = async (req, res) => {
         const borrower = await User.findById(req.book.borrowerId);
 
         await BorrowedBooks.findByIdAndUpdate(ownBorrowListId, {
-            $pull: { BorrowedBooks: book }
+            $pull: { books: book }
         }).exec();
 
         await BorrowedBooks.findByIdAndUpdate(borrower.borrowedBooks, {
-            $pull: { BorrowedBooks: book }
+            $pull: { books: book }
         }).exec();
 
         book.status = "Bereit zum Verleihen";

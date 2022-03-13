@@ -1,51 +1,51 @@
-import TotalBorrowedBooks from "../models/counter.model";
+import Counter from "../models/counter.model";
 
-const mainCounterName = "main";
+const mainCounterName = "mainBorrow";
 
 const getBorrowCounter = async (_, res) => {
-  try {
-    let counter = await TotalBorrowedBooks.find({
-      counterName: mainCounterName,
-    });
-    if (counter == null) {
-      counter = new TotalBorrowedBooks({
-        counterName: mainCounterName,
-        totalBorrowedBooks: 0,
-      });
-      await counter.save();
-    }
+    try {
+        let counter = await Counter.find({
+            name: mainCounterName
+        });
+        if (counter == null) {
+            counter = new Counter({
+                name: mainCounterName,
+                count: 0
+            });
+            await counter.save();
+        }
 
-    return res.status(200).json({
-      totalBorrowedBooks: counter.totalBorrowedBooks,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      what: err.name,
-    });
-  }
+        return res.status(201).json({
+            Counter: counter.count
+        });
+    } catch (err) {
+        return res.status(500).json({
+            what: err.name
+        });
+    }
 };
 
 const incremenBorrowCounter = async (_, res, next) => {
-  try {
-    // const counter =
-    await TotalBorrowedBooks.findOneAndUpdate(
-      { counterName: mainCounterName },
-      { $inc: { totalBorrowedBooks: 1 } },
-      { new: true, upsert: true }
-    );
-    next();
-    // req.totalBorrowedBooks = counter;
-    // return res.status(201).json({
-    //   totalBorrowedBooks: counter
-    // });
-  } catch (err) {
-    return res.status(500).json({
-      what: err.name,
-    });
-  }
+    try {
+        // const counter =
+        await Counter.findOneAndUpdate(
+            { name: mainCounterName },
+            { $inc: { count: 1 } },
+            { new: true, upsert: true }
+        );
+        return next();
+        // req.count = counter;
+        // return res.status(201).json({
+        //   count: counter
+        // });
+    } catch (err) {
+        return res.status(500).json({
+            what: err.name
+        });
+    }
 };
 
 export default {
-  incremenBorrowCounter,
-  getBorrowCounter,
+    incremenBorrowCounter,
+    getBorrowCounter
 };

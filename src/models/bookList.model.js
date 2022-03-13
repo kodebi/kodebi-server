@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 
 const borrowedBookList = new mongoose.Schema(
     {
-        borrowedBookList: [
+        books: [
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Book"
             }
         ],
-        totalBorrowedBooks: {
+        counter: {
             type: Number,
             default: 0
         }
@@ -20,7 +20,7 @@ const borrowedBookList = new mongoose.Schema(
 
 const bookmarkedBookList = new mongoose.Schema(
     {
-        bookmarkedBookList: [
+        books: [
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Book"

@@ -1,25 +1,46 @@
 import User from "../models/user.model";
-import { BorrowedBooks, BookmarkedBooks } from "../models/bookList.model";
 import extend from "lodash/extend";
 
 // Erstelle Benutzer
 const create = async (req, res, next) => {
     // POST daher body
-    // init borrow and bookmarks lists
-    const borrow = new BorrowedBooks();
-    const bookmark = new BookmarkedBooks();
-    borrow.save();
-    bookmark.save();
-    req.body.borrowedBooks = borrow._id;
-    req.body.bookmarkedBooks = bookmark;
     req.body.activated = false;
+    if (!req.body.password) {
+        return res.status(500).json({
+            error: "Ein Passwort ist notwendig."
+        });
+    }
+    if (req.body.password.length < 6) {
+        return res.status(500).json({
+            error: "Dein Passwort muss mindestens 6 Zeichen lang sein."
+        });
+    }
 
     const user = new User(req.body);
+    await user
+        .save()
+        .exec()
+        .catch((err) => {
+            return res.status(500).json({
+                what: err.name,
+                error: err.message
+            });
+        });
+
+    req.ownProfile._id = user._id;
+    req.ownProfile.email = user.email;
+    return next();
+};
+
+// Liste alle Benutzer auf
+const list = async (req, res) => {
     try {
-        await user.save();
-        req.ownProfile._id = user._id;
-        req.ownProfile.email = user.email;
-        next();
+        let users = await User.find({
+            deletedAt: { $ne: undefined }
+        })
+            .select("name")
+            .exec();
+        res.json(users);
     } catch (err) {
         return res.status(500).json({
             what: err.name,
@@ -28,34 +49,24 @@ const create = async (req, res, next) => {
     }
 };
 
-// Liste alle Benutzer auf
-const list = async (_, res) => {
-    try {
-        const users = await User.find()
-            .select("name email created group")
-            .exec();
-        res.json(users);
-    } catch (err) {
-        return res.status(500).json({
-            what: err.name
-        });
-    }
-};
-
 // Einzelne Benutzer finden
 // An die Anfrage anhaengen und weiterleiten
 const userByID = async (req, res, next) => {
     try {
-        let user = await User.findById(req.params.userId).exec();
+        let user = await User.findById(req.params.userId, {
+            hashed_password: 0,
+            salt: 0,
+            borrowedBooks: 0,
+            bookmarkedBooks: 0,
+            group: 0
+        }).exec();
         if (!user) {
             return res.status(404).json({
                 error: "User nicht gefunden"
             });
         }
-        user.hashed_password = undefined;
-        user.salt = undefined;
         req.profile = user;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
             error: "Could not retrieve user"
@@ -65,16 +76,17 @@ const userByID = async (req, res, next) => {
 
 const getOwnUser = async (req, res, next) => {
     try {
-        let user = await User.findById(req.auth._id).exec();
+        let user = await User.findById(req.auth._id, {
+            hashed_password: 0,
+            salt: 0
+        }).exec();
         if (!user) {
             return res.status(404).json({
                 error: "User nicht gefunden"
             });
         }
-        user.hashed_password = undefined;
-        user.salt = undefined;
         req.ownProfile = user;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
             error: "Could not retrieve user"
@@ -86,9 +98,6 @@ const getOwnUser = async (req, res, next) => {
 const read = (req, res) => {
     req.profile.hashed_password = undefined;
     req.profile.salt = undefined;
-    req.profile.group = undefined;
-    req.profile.borrowedBooks = undefined;
-    req.profile.bookmarkedBooks = undefined;
     return res.json(req.profile);
 };
 
@@ -96,12 +105,18 @@ const read = (req, res) => {
 const update = async (req, res) => {
     try {
         let user = req.profile;
+        if (req.body.password && req.body.password < 6) {
+            return res.status(500).json({
+                error: "Dein Passwort muss mindestens 6 Zeichen lang sein."
+            });
+        }
         // lodash - merge and extend user profile
         user = extend(user, req.body);
         await user.save();
-        user.hashed_password = undefined;
-        user.salt = undefined;
-        res.json(user);
+        return res.status(200).json({
+            message: "Benutzer angepasst.",
+            user: user._id
+        });
     } catch (err) {
         return res.status(500).json({
             what: err.name
@@ -112,11 +127,16 @@ const update = async (req, res) => {
 // loesche user
 const remove = async (req, res) => {
     try {
+        // Just set inactive
         let user = req.profile;
-        let deletedUser = await user.remove();
-        deletedUser.hashed_password = undefined;
-        deletedUser.salt = undefined;
-        res.json(deletedUser);
+        // Set inactive
+        user.deletedAt = Date.now();
+        await user.save();
+
+        return res.status(200).json({
+            message: "Benutzer gelöscht.",
+            user: user._id
+        });
     } catch (err) {
         return res.status(500).json({
             what: err.name
