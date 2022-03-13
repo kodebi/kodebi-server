@@ -1,18 +1,23 @@
 import mongoose from "mongoose";
-import app from "../src/express";
-import bookModel from "../src/models/book.model";
-import Users from "../src/models/user.model";
+import app from "../src/express.js";
+import bookModel from "../src/models/book.model.js";
+import Users from "../src/models/user.model.js";
 
 // For testing
 import chai from "chai";
 import chaiHttp from "chai-http";
-import "chai/register-should";
+import "chai/register-should.js";
 
 let should = chai.should();
 
-// Own db for testing
-process.env.MONGODB_URI = "mongodb://localhost:27017/testdb";
-process.env.NODE_ENV = "test";
+// start app
+app.listen(config.port, (err) => {
+    if (err) {
+        console.log(err);
+        process.exit(1);
+    }
+    console.info("Server started on port %s.", config.port);
+});
 
 chai.use(chaiHttp);
 //Our parent block

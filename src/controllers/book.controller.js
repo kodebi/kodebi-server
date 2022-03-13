@@ -103,6 +103,13 @@ const update = async (req, res) => {
         req.body.imagekitIoId = book.imagekitIoId;
 
         // Verändern der restlichen Buchdaten
+        // Object.assign(book, req.body) ?
+        // const bookUpdate = req.body;
+        // for (const key of Object.keys(bookUpdate)) {
+        //     if (key in book) { // or obj1.hasOwnProperty(key)
+        //         book[key] = bookUpdate[key];
+        //     }
+        // }
         book = extend(book, req.body);
         await book.save();
         res.json(book);

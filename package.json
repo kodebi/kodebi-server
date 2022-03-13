@@ -7,7 +7,7 @@
     "dev": "nodemon",
     "start": "node --es-module-specifier-resolution=node ./server.js",
     "heroku-postbuild": "cd client && npm ci && npm run build",
-    "test": "mocha --timeout 10000"
+    "test": "mocha --node-option=es-module-specifier-resolution=node --input-type=module --timeout 10000 --require chai/register-should.js ./test/*.js" 
   },
   "type": "module",
   "repository": {
@@ -21,7 +21,8 @@
   },
   "homepage": "https://github.com/kodebi/kodebi-server#readme",
   "devDependencies": {
-    "chai": "4.3.6",
+    "chai": "^4.3.6",
+    "chai-http": "^4.3.0",
     "mocha": "9.2.0",
     "nodemon": "^2.0.15",
     "prettier": "2.4.1"
