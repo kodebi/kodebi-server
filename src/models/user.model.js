@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
-import { BorrowedBooks, BookmarkedBooks } from "./bookList.model";
+import { BorrowedBooks, BookmarkedBooks } from "./bookList.model.js";
 
 const UserSchema = new mongoose.Schema(
     {

@@ -7,7 +7,7 @@
     "dev": "nodemon",
     "start": "node --es-module-specifier-resolution=node ./server.js",
     "heroku-postbuild": "cd client && npm ci && npm run build",
-    "test": "SET NODE_ENV=test && mocha --check-leaks --node-option=es-module-specifier-resolution=node --input-type=module --timeout 10000 --require chai/register-should.js ./test/*.js" 
+    "test": "SET NODE_ENV=test && mocha --check-leaks --node-option=es-module-specifier-resolution=node --input-type=module --timeout 10000 --require chai/register-should.js ./test/*.js"
   },
   "type": "module",
   "repository": {

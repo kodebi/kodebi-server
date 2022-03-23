@@ -1,6 +1,6 @@
 import express from "express";
-import authCtrl from "../controllers/auth.controller";
-import conversationCtrl from "../controllers/conversation.controller";
+import authCtrl from "../controllers/auth.controller.js";
+import conversationCtrl from "../controllers/conversation.controller.js";
 
 // Route: /api/messages
 const protectedRouter = express.Router();

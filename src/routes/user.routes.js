@@ -1,8 +1,8 @@
 import express from "express";
-import userCtrl from "../controllers/user.controller";
-import authCtrl from "../controllers/auth.controller";
-import activationCtrl from "../controllers/activation.controller";
-import { userValidator, validate } from "../helpers/validator";
+import userCtrl from "../controllers/user.controller.js";
+import authCtrl from "../controllers/auth.controller.js";
+import activationCtrl from "../controllers/activation.controller.js";
+import { userValidator, validate } from "../helpers/validator.js";
 
 // Route: /api/users
 const protectedRouter = express.Router();

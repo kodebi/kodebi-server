@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Message from "./messages.model";
+import Message from "./messages.model.js";
 
 const ConversationSchema = new mongoose.Schema(
     {

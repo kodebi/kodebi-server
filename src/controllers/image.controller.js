@@ -1,6 +1,6 @@
 import multer from "multer";
 import ImageKit from "imagekit";
-import config from "../config/config";
+import config from "../config/config.js";
 
 // imagekit.io Auth definition
 // Define in process.env.

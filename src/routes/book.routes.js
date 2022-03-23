@@ -1,9 +1,9 @@
 import express from "express";
-import authCtrl from "../controllers/auth.controller";
-import bookCtrl from "../controllers/book.controller";
-import imgCtrl from "../controllers/image.controller";
-import userCtrl from "../controllers/user.controller";
-import counterCtrl from "../controllers/counter.controller";
+import authCtrl from "../controllers/auth.controller.js";
+import bookCtrl from "../controllers/book.controller.js";
+import imgCtrl from "../controllers/image.controller.js";
+import userCtrl from "../controllers/user.controller.js";
+import counterCtrl from "../controllers/counter.controller.js";
 
 // Route: /api/books
 const protectedRouter = express.Router();

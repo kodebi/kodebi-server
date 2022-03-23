@@ -1,5 +1,5 @@
-import User from "../models/user.model";
 import extend from "lodash/extend";
+import User from "../models/user.model.js";
 
 // Erstelle Benutzer
 const create = async (req, res, next) => {

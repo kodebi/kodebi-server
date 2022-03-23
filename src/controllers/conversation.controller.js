@@ -1,5 +1,5 @@
-import Conversation from "../models/conversation.model";
-import Message from "../models/messages.model";
+import Conversation from "../models/conversation.model.js";
+import Message from "../models/messages.model.js";
 
 const createConv = async (req, res) => {
     // Erstelt erste Nachricht und die zugehoerige Conversation

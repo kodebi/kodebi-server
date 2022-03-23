@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
-import User from "../models/user.model";
-import passwordResetToken from "../models/passwordResetToken.model";
 import crypto from "crypto";
-import config from "../config/config";
+import User from "../models/user.model.js";
+import passwordResetToken from "../models/passwordResetToken.model.js";
+import config from "../config/config.js";
 
 const requestPasswordReset = async (req, res) => {
     let user = await User.findOne({ email: req.body.email }).exec();

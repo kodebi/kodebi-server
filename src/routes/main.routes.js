@@ -1,10 +1,10 @@
 import express from "express";
-import authCtrl from "../controllers/auth.controller";
+import authCtrl from "../controllers/auth.controller.js";
 
-import authRoutes from "./auth.routes";
-import bookRoutes from "./book.routes";
-import conversationRoutes from "./conversation.routes";
-import userRoutes from "./user.routes";
+import authRoutes from "./auth.routes.js";
+import bookRoutes from "./book.routes.js";
+import conversationRoutes from "./conversation.routes.js";
+import userRoutes from "./user.routes.js";
 
 const router = express.Router();
 router.use("/api/books", bookRoutes.router);
@@ -13,19 +13,19 @@ router.use("/auth", authRoutes.router);
 
 const protectedRouter = express.Router();
 protectedRouter.use(
-  "/api/books",
-  authCtrl.requireSignin,
-  bookRoutes.protectedRouter
+    "/api/books",
+    authCtrl.requireSignin,
+    bookRoutes.protectedRouter
 );
 protectedRouter.use(
-  "/api/messages",
-  authCtrl.requireSignin,
-  conversationRoutes.protectedRouter
+    "/api/messages",
+    authCtrl.requireSignin,
+    conversationRoutes.protectedRouter
 );
 protectedRouter.use(
-  "/api/users",
-  authCtrl.requireSignin,
-  userRoutes.protectedRouter
+    "/api/users",
+    authCtrl.requireSignin,
+    userRoutes.protectedRouter
 );
 
 const mainRouter = express.Router();

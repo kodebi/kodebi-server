@@ -1,4 +1,4 @@
-import Counter from "../models/counter.model";
+import Counter from "../models/counter.model.js";
 
 const mainCounterName = "mainBorrow";
 

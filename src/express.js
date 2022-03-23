@@ -3,9 +3,7 @@ import cookieParser from "cookie-parser";
 import compress from "compression";
 import cors from "cors";
 import helmet from "helmet";
-import mainRoutes from "./routes/main.routes";
-// import path from "path";
-// import config from "./config/config";
+import mainRoutes from "./routes/main.routes.js";
 
 // const CURRENT_WORKING_DIR = process.cwd();
 const app = express();
@@ -18,16 +16,20 @@ app.use(compress());
 
 // Secure app
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"],
-      fontSrc: ["https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "https://ik.imagekit.io"],
-      baseUri: ["'self'"]
-    }
-  })
+    helmet.contentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
+            styleSrc: [
+                "'self'",
+                "https://fonts.googleapis.com",
+                "'unsafe-inline'"
+            ],
+            fontSrc: ["https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "https://ik.imagekit.io"],
+            baseUri: ["'self'"]
+        }
+    })
 );
 // Cross Origin Resource Sharing
 app.use(cors());

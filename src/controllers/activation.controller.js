@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
-import User from "../models/user.model";
-import registrationToken from "../models/registrationToken.model";
 import crypto from "crypto";
-import config from "../config/config";
+import User from "../models/user.model.js";
+import registrationToken from "../models/registrationToken.model.js";
+import config from "../config/config.js";
 
 const failedUserActivation = async (req, res, next) => {
     const user = await User.findOne({ email: req.param.email }).exec();
