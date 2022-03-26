@@ -44,4 +44,4 @@ protectedRouter
         conversationCtrl.read
     );
 
-export default protectedRouter;
+export default { protectedRouter };

@@ -102,6 +102,7 @@ UserSchema.methods = {
     },
     encryptPassword: function (password) {
         if (!password) return "";
+        console.log(typeof password);
         const passwordBuffer = Buffer.from(password, "utf8");
         const saltBuffer = Buffer.from(this.salt, "utf8");
         crypto.scrypt(passwordBuffer, saltBuffer, 64, (err, pwHash) => {
@@ -109,11 +110,17 @@ UserSchema.methods = {
             return pwHash.toString("hex");
         });
     },
+    // sync? const buf = randomBytes(256);
+    // makeSalt: function () {
+    //     crypto.randomBytes(20, (err, buf) => {
+    //         if (err) throw err;
+    //          Continue with pw gen here:
+    //         return buf.toString("hex");
+    //     });
+    // }
     makeSalt: function () {
-        crypto.randomBytes(20, (err, buf) => {
-            if (err) throw err;
-            return buf.toString("hex");
-        });
+        const buf = crypto.randomBytes(20);
+        return buf.toString("hex");
     }
 };
 

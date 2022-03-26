@@ -44,7 +44,7 @@ app.use(cors());
 // rate-limiter-flexible
 
 // mount routes
-app.use("/", mainRoutes.mainRouter);
+app.use("/", mainRoutes);
 
 // app.get("*", (req, res) => {
 //   res.sendFile(path.join(CURRENT_WORKING_DIR + "/client/dist/index.html"));

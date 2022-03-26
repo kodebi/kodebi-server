@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import app from "../src/express.js";
 import bookModel from "../src/models/book.model.js";
-import Users from "../src/models/user.model.js";
+import User from "../src/models/user.model.js";
+import config from "../src/config/config.js";
 
 // For testing
 import chai from "chai";
@@ -10,24 +11,27 @@ import "chai/register-should.js";
 
 let should = chai.should();
 
-// start app
-app.listen(config.port, (err) => {
+let server = app;
+
+// start server
+server.listen(config.port, (err) => {
     if (err) {
         console.log(err);
         process.exit(1);
     }
     console.info("Server started on port %s.", config.port);
+    console.info("MongoDB Uri: ", config.mongoUri);
 });
 
 chai.use(chaiHttp);
 //Our parent block
 describe("Users", () => {
-    beforeEach((done) => {
-        //Before each test we empty the database
-        Users.remove({}, (err) => {
-            done();
-        });
-    });
+    // beforeEach((done) => {
+    //     //Before each test we empty the database
+    //     User.remove({}, (err) => {
+    //         done();
+    //     });
+    // });
 
     let dummyUserId = "000";
 
@@ -142,9 +146,9 @@ describe("Users", () => {
     describe("/GET /api/users/userid", () => {
         it("Get User by UserId", (done) => {
             chai.request(server)
+                .post("/api/users/" + userId)
                 .auth(authToken, { type: "bearer" })
                 // .set({ Authorization: `Bearer ${authToken}` })
-                .post("/api/users/" + userId)
                 .end((err, res) => {
                     if (err) {
                         done(err);

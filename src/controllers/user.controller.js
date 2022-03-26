@@ -17,15 +17,12 @@ const create = async (req, res, next) => {
     }
 
     const user = new User(req.body);
-    await user
-        .save()
-        .exec()
-        .catch((err) => {
-            return res.status(500).json({
-                what: err.name,
-                error: err.message
-            });
+    await user.save().catch((err) => {
+        return res.status(500).json({
+            what: err.name,
+            error: err.message
         });
+    });
 
     req.ownProfile._id = user._id;
     req.ownProfile.email = user.email;

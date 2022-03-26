@@ -1,7 +1,7 @@
 import extend from "lodash/extend";
 import Book from "../models/book.model.js";
 import User from "../models/user.model.js";
-import { BorrowedBooks, BookmarkedBooks } from "./bookList.model.js";
+import { BorrowedBooks, BookmarkedBooks } from "../models/bookList.model.js";
 
 //Buch wird erstellt
 const create = async (req, res) => {

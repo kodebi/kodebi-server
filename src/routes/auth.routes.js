@@ -25,4 +25,4 @@ router.route("/resetPassword").post(resetCtrl.resetPassword); // Reset Password
 
 router.route("/totalBorrowedBooks").post(counterCtrl.getBorrowCounter);
 
-export default router;
+export default { router };

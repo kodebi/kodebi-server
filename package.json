@@ -7,7 +7,7 @@
     "dev": "nodemon",
     "start": "node --es-module-specifier-resolution=node ./server.js",
     "heroku-postbuild": "cd client && npm ci && npm run build",
-    "test": "SET NODE_ENV=test && mocha --check-leaks --node-option=es-module-specifier-resolution=node --input-type=module --timeout 10000 --require chai/register-should.js ./test/*.js"
+    "test": "NODE_ENV=test && mocha --check-leaks --node-option=es-module-specifier-resolution=node --input-type=module --timeout 10000 --require chai/register-should.js ./test/*.js"
   },
   "type": "module",
   "repository": {
@@ -35,6 +35,7 @@
     "esm": "3.2.25",
     "express": "4.17.2",
     "express-jwt": "6.1.0",
+    "express-validator": "^6.14.0",
     "helmet": "5.0.2",
     "imagekit": "3.2.4",
     "jsonwebtoken": "8.5.1",
