@@ -4,28 +4,36 @@ import User from "../models/user.model.js";
 import config from "../config/config.js";
 
 const signin = async (req, res) => {
+    let user;
     try {
-        let user = await User.findOne({
+        user = await User.findOne({
             email: req.body.email
         });
-        if (!user)
-            return res.status(404).json({
-                error: "Benutzer nicht gefunden"
-            });
+    } catch (err) {
+        return res.status(404).json({
+            error: "Benutzer nicht gefunden"
+        });
+    }
 
-        if (!user.authenticate(req.body.password)) {
-            return res.status(401).send({
-                error: "Falsches Passwort"
-            });
-        }
+    if (!user)
+        return res.status(404).json({
+            error: "Benutzer nicht gefunden"
+        });
 
-        if (!user.activated) {
-            return res.status(401).send({
-                error: "Bitte aktiviere dein Profil zuerst"
-            });
-        }
+    if (!user.authenticate(req.body.password)) {
+        return res.status(401).send({
+            error: "Falsches Passwort"
+        });
+    }
 
-        // JSON Web Tokens
+    if (!user.activated) {
+        return res.status(401).send({
+            error: "Bitte aktiviere dein Profil zuerst"
+        });
+    }
+
+    // JSON Web Tokens
+    try {
         const token = jwt.sign(
             {
                 _id: user._id,
@@ -34,7 +42,9 @@ const signin = async (req, res) => {
             },
             config.jwtSecret,
             {
-                expiresIn: "30 days"
+                expiresIn: "30 days",
+                audience: "http://www.kodebi.de/api/",
+                issuer: "http://www.kodebi.de"
             }
         );
 
@@ -53,8 +63,9 @@ const signin = async (req, res) => {
                 groups: user.groups
             }
         });
-    } catch (err) {
+    } catch (error) {
         return res.status(500).json({
+            what: err.name,
             error: "Konnte dich nicht anmelden"
         });
     }

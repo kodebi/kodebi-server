@@ -16,17 +16,17 @@ const create = async (req, res, next) => {
         });
     }
 
-    const user = new User(req.body);
-    await user.save().catch((err) => {
+    try {
+        const user = new User(req.body);
+        await user.save();
+        req.ownProfile = { _id: user._id, email: user.email };
+        return next();
+    } catch (err) {
         return res.status(500).json({
             what: err.name,
             error: err.message
         });
-    });
-
-    req.ownProfile._id = user._id;
-    req.ownProfile.email = user.email;
-    return next();
+    }
 };
 
 // Liste alle Benutzer auf
@@ -37,7 +37,7 @@ const list = async (req, res) => {
         })
             .select("name")
             .exec();
-        res.json(users);
+        return res.json(users);
     } catch (err) {
         return res.status(500).json({
             what: err.name,

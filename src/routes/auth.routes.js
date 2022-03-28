@@ -9,13 +9,11 @@ const router = express.Router();
 router.route("/signin").post(authCtrl.signin);
 router.route("/signout").get(authCtrl.signout);
 
-router
-    .route("/completeRegistration/:token/:userId")
-    .get(activationCtrl.activateUser);
+router.route("/completeRegistration").post(activationCtrl.activateUser);
 
 router
-    .route("/failedUserActivation/:email")
-    .get(
+    .route("/failedUserActivation")
+    .post(
         activationCtrl.failedUserActivation,
         activationCtrl.requestUserActivation
     );

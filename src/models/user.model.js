@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
+// import { promisify } from "util";
 import { BorrowedBooks, BookmarkedBooks } from "./bookList.model.js";
 
 const UserSchema = new mongoose.Schema(
@@ -30,7 +31,7 @@ const UserSchema = new mongoose.Schema(
         },
         hashed_password: {
             type: String,
-            required: "Password ist erforderlich"
+            required: [true, "Passwort ist erforderlich"]
         },
         salt: String,
         activated: {
@@ -69,13 +70,17 @@ UserSchema.virtual("password").set(function (password) {
     this._password = password;
 });
 
-UserSchema.path("hashed_password").validate(async function () {
-    if (this._password && this._password.lenght < 6) {
+UserSchema.pre("validate", async function (next) {
+    if (this._password && this._password.length < 6) {
         return false;
     }
-    return await this.makeSaltAsync().then(
-        this.encryptPasswordAsync(this._password)
-    );
+    if (this.isNew && !this._password) {
+        return false;
+    }
+
+    this.salt = await this.makeSaltAsync();
+    this.hashed_password = await this.encryptPasswordAsync(this._password);
+    next();
 });
 
 UserSchema.pre("save", function (next) {
@@ -100,23 +105,36 @@ UserSchema.methods = {
         const hashBuffer = Buffer.from(this.hashed_password, "hex");
         return crypto.timingSafeEqual(hashBuffer, keyBuffer);
     },
-    encryptPasswordAsync: function (password) {
-        if (!password) return "";
-        console.log(typeof password);
-        const passwordBuffer = Buffer.from(password, "utf8");
-        const saltBuffer = Buffer.from(this.salt, "utf8");
-        crypto.scrypt(passwordBuffer, saltBuffer, 64, (err, pwHash) => {
-            if (err) throw err;
-            // return pwHash.toString("hex");
-            this.hashed_password = pwHash.toString("hex");
+    encryptPasswordAsync: async function (password) {
+        return new Promise((resolve, reject) => {
+            if (!password) reject();
+            const passwordBuffer = Buffer.from(password, "utf8");
+            const saltBuffer = Buffer.from(this.salt, "utf8");
+            crypto.scrypt(passwordBuffer, saltBuffer, 64, (err, pwHash) => {
+                if (err) reject(err);
+                resolve(pwHash.toString("hex"));
+            });
         });
     },
     makeSaltAsync: async function () {
-        crypto.randomBytes(20, (err, buf) => {
-            if (err) throw err;
-            // return buf.toString("hex");
-            this.salt = buf.toString("hex");
+        return new Promise((resolve, reject) => {
+            crypto.randomBytes(20, (err, buf) => {
+                if (err) reject(err);
+                resolve(buf.toString("hex"));
+            });
         });
+    },
+    encryptPassword: function (password) {
+        if (!password) return "";
+        try {
+            const passwordBuffer = Buffer.from(password, "utf8");
+            const saltBuffer = Buffer.from(this.salt, "utf8");
+            return crypto
+                .scryptSync(passwordBuffer, saltBuffer, 64)
+                .toString("hex");
+        } catch (err) {
+            return "";
+        }
     },
     makeSalt: function () {
         const buf = crypto.randomBytes(20);

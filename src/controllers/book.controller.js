@@ -206,7 +206,6 @@ const getBorrowed = async (req, res) => {
         const borrowed = await BorrowedBooks.findById(borrowedId)
             .populate("books")
             .exec();
-
         return res.status(200).json(borrowed);
     } catch (err) {
         return res.status(500).json({

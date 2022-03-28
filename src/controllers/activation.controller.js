@@ -1,11 +1,12 @@
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import registrationToken from "../models/registrationToken.model.js";
 import config from "../config/config.js";
 
 const failedUserActivation = async (req, res, next) => {
-    const user = await User.findOne({ email: req.param.email }).exec();
+    const user = await User.findOne({ email: req.body.email }).exec();
     if (!user) {
         return res.status(404).json({
             error: "Benutzer nicht gefunden"
@@ -43,10 +44,12 @@ const requestUserActivation = async (req, res) => {
             error: err.message
         });
     }
+    console.log(token);
+
     const link =
-        "http://app.kodebi.de/auth/completeRegistration/" +
+        "http://app.kodebi.de/auth/completeRegistration/?token=" +
         registerToken +
-        "/" +
+        "&id=" +
         req.ownProfile._id;
 
     if (process.env.NODE_ENV === "test") {
@@ -99,8 +102,9 @@ async function sendRegisterUserMail(mailTo, resetLink) {
 
 const activateUser = async (req, res) => {
     // We need userid, token
+    const obId = mongoose.Types.ObjectId(req.body.userId);
     const activateToken = await registrationToken
-        .findOne({ user: req.params.userId })
+        .findOne({ user: obId })
         .exec();
 
     if (!activateToken) {
@@ -110,7 +114,7 @@ const activateUser = async (req, res) => {
     }
     const hash = crypto
         .createHmac("sha256", config.userActivationSalt)
-        .update(req.params.token)
+        .update(req.body.token)
         .digest("hex");
     const keyBuffer = Buffer.from(hash, "hex");
     const hashBuffer = Buffer.from(activateToken.token, "hex");
@@ -123,7 +127,7 @@ const activateUser = async (req, res) => {
     }
 
     try {
-        await User.findByIdAndUpdate(req.params.userId, {
+        await User.findByIdAndUpdate(req.body.userId, {
             activated: true
         }).exec();
     } catch (err) {
