@@ -66,16 +66,16 @@ const UserSchema = new mongoose.Schema(
 );
 
 UserSchema.virtual("password").set(function (password) {
-    this.salt = this.makeSalt();
-    this.hashed_password = this.encryptPassword(password);
     this._password = password;
 });
 
-UserSchema.path("hashed_password").validate(function () {
+UserSchema.path("hashed_password").validate(async function () {
     if (this._password && this._password.lenght < 6) {
         return false;
     }
-    return true;
+    return await this.makeSaltAsync().then(
+        this.encryptPasswordAsync(this._password)
+    );
 });
 
 UserSchema.pre("save", function (next) {
@@ -100,24 +100,24 @@ UserSchema.methods = {
         const hashBuffer = Buffer.from(this.hashed_password, "hex");
         return crypto.timingSafeEqual(hashBuffer, keyBuffer);
     },
-    encryptPassword: function (password) {
+    encryptPasswordAsync: function (password) {
         if (!password) return "";
         console.log(typeof password);
         const passwordBuffer = Buffer.from(password, "utf8");
         const saltBuffer = Buffer.from(this.salt, "utf8");
         crypto.scrypt(passwordBuffer, saltBuffer, 64, (err, pwHash) => {
             if (err) throw err;
-            return pwHash.toString("hex");
+            // return pwHash.toString("hex");
+            this.hashed_password = pwHash.toString("hex");
         });
     },
-    // sync? const buf = randomBytes(256);
-    // makeSalt: function () {
-    //     crypto.randomBytes(20, (err, buf) => {
-    //         if (err) throw err;
-    //          Continue with pw gen here:
-    //         return buf.toString("hex");
-    //     });
-    // }
+    makeSaltAsync: async function () {
+        crypto.randomBytes(20, (err, buf) => {
+            if (err) throw err;
+            // return buf.toString("hex");
+            this.salt = buf.toString("hex");
+        });
+    },
     makeSalt: function () {
         const buf = crypto.randomBytes(20);
         return buf.toString("hex");
