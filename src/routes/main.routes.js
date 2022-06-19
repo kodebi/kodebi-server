@@ -12,21 +12,10 @@ router.use("/api/users", userRoutes.router);
 router.use("/auth", authRoutes.router);
 
 const protectedRouter = express.Router();
-protectedRouter.use(
-    "/api/books",
-    authCtrl.requireSignin,
-    bookRoutes.protectedRouter
-);
-protectedRouter.use(
-    "/api/messages",
-    authCtrl.requireSignin,
-    conversationRoutes.protectedRouter
-);
-protectedRouter.use(
-    "/api/users",
-    authCtrl.requireSignin,
-    userRoutes.protectedRouter
-);
+// book,borrow,return,bookmark
+protectedRouter.use("/api/", authCtrl.requireSignin, bookRoutes.protectedRouter);
+protectedRouter.use("/api/messages", authCtrl.requireSignin, conversationRoutes.protectedRouter);
+protectedRouter.use("/api/users", authCtrl.requireSignin, userRoutes.protectedRouter);
 
 const mainRouter = express.Router();
 mainRouter.use(router);

@@ -27,10 +27,7 @@ const requestUserActivation = async (req, res) => {
         await oldtoken.deleteOne();
     }
     const registerToken = crypto.randomBytes(32).toString("hex");
-    const hash = crypto
-        .createHmac("sha256", config.userActivationSalt)
-        .update(registerToken)
-        .digest("hex");
+    const hash = crypto.createHmac("sha256", config.userActivationSalt).update(registerToken).digest("hex");
     const token = new registrationToken({
         user: req.ownProfile._id,
         token: hash
@@ -46,11 +43,7 @@ const requestUserActivation = async (req, res) => {
     }
     console.log(token);
 
-    const link =
-        "http://app.kodebi.de/auth/completeRegistration/?token=" +
-        registerToken +
-        "&id=" +
-        req.ownProfile._id;
+    const link = "http://app.kodebi.de/auth/completeRegistration/?token=" + registerToken + "&id=" + req.ownProfile._id;
 
     if (process.env.NODE_ENV === "test") {
         // Get token directly for testing
@@ -61,11 +54,12 @@ const requestUserActivation = async (req, res) => {
         });
     }
 
-    sendRegisterUserMail(req.ownProfile.email, link);
+    // sendRegisterUserMail(req.ownProfile.email, link);
 
     return res.status(200).json({
         message: "Benutzer erfolgreich erstellt!",
-        user: req.ownProfile
+        user: req.ownProfile,
+        token: registerToken
     });
 };
 
@@ -89,12 +83,8 @@ async function sendRegisterUserMail(mailTo, resetLink) {
         bcc: mailFrom, // also send to self for docu
         to: mailTo, // list of receivers
         subject: "Kodebi Benutzer aktivieren", // Subject line
-        text:
-            "Um deinen Benutzer zu aktivieren klicke bitte diesen Link: " +
-            resetLink, // plain text body
-        html:
-            "<b>Um deinen Benutzer zu aktivieren klicke bitte diesen Link:</b>" +
-            resetLink // html body
+        text: "Um deinen Benutzer zu aktivieren klicke bitte diesen Link: " + resetLink, // plain text body
+        html: "<b>Um deinen Benutzer zu aktivieren klicke bitte diesen Link:</b>" + resetLink // html body
     });
 
     console.log("Message sent: %s", info.messageId);
@@ -103,19 +93,14 @@ async function sendRegisterUserMail(mailTo, resetLink) {
 const activateUser = async (req, res) => {
     // We need userid, token
     const obId = mongoose.Types.ObjectId(req.body.userId);
-    const activateToken = await registrationToken
-        .findOne({ user: obId })
-        .exec();
+    const activateToken = await registrationToken.findOne({ user: obId }).exec();
 
     if (!activateToken) {
         return res.status(401).json({
             error: "Token nicht gefunden"
         });
     }
-    const hash = crypto
-        .createHmac("sha256", config.userActivationSalt)
-        .update(req.body.token)
-        .digest("hex");
+    const hash = crypto.createHmac("sha256", config.userActivationSalt).update(req.body.token).digest("hex");
     const keyBuffer = Buffer.from(hash, "hex");
     const hashBuffer = Buffer.from(activateToken.token, "hex");
     const isValid = crypto.timingSafeEqual(keyBuffer, hashBuffer);
@@ -139,8 +124,7 @@ const activateUser = async (req, res) => {
 
     await activateToken.deleteOne();
     return res.status(200).json({
-        message:
-            "Benutzer Registrierung abgeschlossen! Du kannst dich jetzt anmelden."
+        message: "Benutzer Registrierung abgeschlossen! Du kannst dich jetzt anmelden."
     });
 };
 

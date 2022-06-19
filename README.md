@@ -45,8 +45,8 @@ http://localhost:3000
 Kodebi backend mit create, update, delete (CRUD) und authentication-authorization (auth)
 Testen mit https://install.advancedrestclient.com/install
 
-- Body-Content-Type: application/json
-- Editor-view: Json visual Editor
+-   Body-Content-Type: application/json
+-   Editor-view: Json visual Editor
 
 #### application programming interface (API)
 
@@ -77,19 +77,20 @@ Testen mit https://install.advancedrestclient.com/install
 
 ### Bücher API
 
-| Route                         | HTTP Methode |                               Beschreibung |
-| ----------------------------- | :----------: | -----------------------------------------: |
-| `/api/books/`                 |    `POST`    |                              Erstelle Buch |
-| `/api/books/`                 |    `GET`     |                         Liste aller Bücher |
-| `/api/books/:bookId`          |    `GET`     |                  Finde ein bestimmtes Buch |
-| `/api/books/:bookId`          |    `PUT`     |                             Verändere Buch |
-| `/api/books/image/:bookId`    |    `PUT`     |            Verändere nur das Bild von Buch |
-| `/api/books/:bookId`          |   `DELETE`   |                                Lösche Buch |
-| `/api/books/user/:userId`     |    'GET'     | Erhalte alle Bücher eines bestimmten Users |
-| `/api/books/borrow/:bookId`   |    `PUT`     |                      Verleihe eigenes Buch |
-| `/api/books/borrow`           |    `GET`     |                   Eigene verliehene Bücher |
-| `/api/books/bookmark/:bookId` |    `PUT`     |                Trage Buch in Merkliste ein |
-| `/api/books/bookmark`         |    `GET`     |                     Eigene gemerkte Bücher |
+| Route                     | HTTP Methode |                               Beschreibung |
+| ------------------------- | :----------: | -----------------------------------------: |
+| `/api/books/`             |    `GET`     |                         Liste aller Bücher |
+| `/api/book/`              |    `POST`    |                              Erstelle Buch |
+| `/api/book/:bookId`       |    `GET`     |                  Finde ein bestimmtes Buch |
+| `/api/book/:bookId`       |    `PUT`     |                             Verändere Buch |
+| `/api/book/image/:bookId` |    `PUT`     |            Verändere nur das Bild von Buch |
+| `/api/book/:bookId`       |   `DELETE`   |                                Lösche Buch |
+| `/api/book/user/:userId`  |    `GET`     | Erhalte alle Bücher eines bestimmten Users |
+| `/api/borrow/:bookId`     |    `PUT`     |                      Verleihe eigenes Buch |
+| `/api/borrow`             |    `GET`     |                   Eigene verliehene Bücher |
+| `/api/return/:bookId`     |    `PUT`     |                           Buch zurückgeben |
+| `/api/bookmark/:bookId`   |    `PUT`     |                Trage Buch in Merkliste ein |
+| `/api/bookmark`           |    `GET`     |                     Eigene gemerkte Bücher |
 
 ### Book Schema
 

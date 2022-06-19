@@ -5,36 +5,23 @@ import imgCtrl from "../controllers/image.controller.js";
 import userCtrl from "../controllers/user.controller.js";
 import counterCtrl from "../controllers/counter.controller.js";
 
-// Route: /api/books
+// Route: /api/ book,borrow,return,bookmark
 const protectedRouter = express.Router();
-
+// book
 // Create book
-protectedRouter
-    .route("/")
-    .post(
-        imgCtrl.UploadImageToMemory,
-        imgCtrl.UploadBookImageToImagekit,
-        bookCtrl.create
-    );
-
-// New Route to getBooks by User
-protectedRouter.route("/user/:userId").get(bookCtrl.bookByUser);
+protectedRouter.route("/book/").post(imgCtrl.UploadImageToMemory, imgCtrl.UploadBookImageToImagekit, bookCtrl.create);
 
 // get book by bookid
 protectedRouter
-    .route("/:bookId")
+    .route("/book/:bookId")
     .all(bookCtrl.bookByID)
     .get(bookCtrl.read)
     .put(authCtrl.hasAuthorizationForBook, bookCtrl.update)
-    .delete(
-        authCtrl.hasAuthorizationForBook,
-        imgCtrl.MoveBookToDeleteFolder,
-        bookCtrl.remove
-    );
+    .delete(authCtrl.hasAuthorizationForBook, imgCtrl.MoveBookToDeleteFolder, bookCtrl.remove);
 
 // Update image
 protectedRouter
-    .route("/image/:bookId")
+    .route("/book/image/:bookId")
     .put(
         bookCtrl.bookByID,
         authCtrl.hasAuthorizationForBook,
@@ -42,6 +29,12 @@ protectedRouter
         imgCtrl.UploadBookImageToImagekit,
         bookCtrl.updateImage
     );
+
+// New Route to getBooks by User
+protectedRouter.route("/book/user/:userId").get(bookCtrl.bookByUser);
+
+// borrow
+protectedRouter.route("/borrow/").get(userCtrl.getOwnUser, bookCtrl.getBorrowed);
 
 protectedRouter
     .route("/borrow/:bookId/user/:userId")
@@ -54,24 +47,14 @@ protectedRouter
         bookCtrl.borrow
     );
 
-protectedRouter.route("/borrow").get(userCtrl.getOwnUser, bookCtrl.getBorrowed);
-
 protectedRouter
     .route("/return/:bookId")
-    .put(
-        userCtrl.getOwnUser,
-        bookCtrl.bookByID,
-        authCtrl.hasAuthorizationForBook,
-        bookCtrl.returnBook
-    );
+    .put(userCtrl.getOwnUser, bookCtrl.bookByID, authCtrl.hasAuthorizationForBook, bookCtrl.returnBook);
 
-protectedRouter
-    .route("/bookmark/:bookId")
-    .put(userCtrl.getOwnUser, bookCtrl.bookByID, bookCtrl.bookmark);
+//Bookmarks
+protectedRouter.route("/bookmark/").get(userCtrl.getOwnUser, bookCtrl.getBookmarks);
 
-protectedRouter
-    .route("/bookmark")
-    .get(userCtrl.getOwnUser, bookCtrl.getBookmarks);
+protectedRouter.route("/bookmark/:bookId").put(userCtrl.getOwnUser, bookCtrl.bookByID, bookCtrl.bookmark);
 
 // Only show some books?
 const router = express.Router();

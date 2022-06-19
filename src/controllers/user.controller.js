@@ -32,8 +32,8 @@ const create = async (req, res, next) => {
 // Liste alle Benutzer auf
 const list = async (req, res) => {
     try {
-        let users = await User.find({
-            deletedAt: { $ne: undefined }
+        const users = await User.find({
+            deletedAt: { $eq: undefined }
         })
             .select("name")
             .exec();
@@ -141,6 +141,10 @@ const remove = async (req, res) => {
     }
 };
 
+const log = async (req, res) => {
+    console.info("Just a debug log");
+};
+
 export default {
     create,
     userByID,
@@ -148,5 +152,6 @@ export default {
     read,
     list,
     remove,
-    update
+    update,
+    log
 };

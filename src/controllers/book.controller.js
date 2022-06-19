@@ -37,14 +37,13 @@ const create = async (req, res) => {
 const list = async (req, res) => {
     try {
         const bookList = await Book.find({
-            deletedAt: { $ne: undefined }
-        }).select(
-            "name author image category ownerId ownerName language status"
-        );
+            deletedAt: { $eq: undefined }
+        }).select("name author image category ownerId ownerName language status");
         res.json(bookList);
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
@@ -65,7 +64,8 @@ const bookByUser = async (req, res) => {
         res.json(books);
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
@@ -83,7 +83,8 @@ const bookByID = async (req, res, next) => {
         return next();
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
@@ -139,7 +140,8 @@ const updateImage = async (req, res) => {
         res.json(book);
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
@@ -158,7 +160,8 @@ const remove = async (req, res) => {
         });
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
@@ -174,11 +177,7 @@ const borrow = async (req, res) => {
         book.status = "Verliehen";
         await book.save();
 
-        await BorrowedBooks.findByIdAndUpdate(
-            borrowListId,
-            { $push: { books: book } },
-            { upsert: true }
-        ).exec();
+        await BorrowedBooks.findByIdAndUpdate(borrowListId, { $push: { books: book } }, { upsert: true }).exec();
 
         await BorrowedBooks.findByIdAndUpdate(
             ownBorrowListId,
@@ -195,32 +194,30 @@ const borrow = async (req, res) => {
         });
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
 
 const getBorrowed = async (req, res) => {
     try {
-        const borrowedId = req.ownProfile.borrowedBooks._id;
-        const borrowed = await BorrowedBooks.findById(borrowedId)
-            .populate("books")
-            .exec();
+        const borrowed = await BorrowedBooks.findById(req.ownProfile.borrowedBooks._id).populate("books").exec();
         return res.status(200).json(borrowed);
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err
         });
     }
 };
 
 const bookmark = async (req, res) => {
-    try {
-        const bookmarksId = req.ownProfile.bookmarkedBooks._id;
-        let book = req.book;
+    let book = req.book;
 
+    try {
         await BookmarkedBooks.findByIdAndUpdate(
-            bookmarksId,
+            req.ownProfile.bookmarkedBooks._id,
             { $push: { books: book } },
             { new: true, upsert: true }
         ).exec();
@@ -230,7 +227,8 @@ const bookmark = async (req, res) => {
         });
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
@@ -249,22 +247,20 @@ const deleteBookmark = async (req, res) => {
         });
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
 
 const getBookmarks = async (req, res) => {
     try {
-        const bookmarksId = req.profile.bookmarkedBooks._id;
-        const bookmarks = await BookmarkedBooks.findById(bookmarksId)
-            .populate("books")
-            .exec();
-
+        const bookmarks = await BookmarkedBooks.findById(req.ownProfile.bookmarkedBooks._id).populate("books").exec();
         return res.status(200).json(bookmarks);
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
@@ -294,7 +290,8 @@ const returnBook = async (req, res) => {
         });
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
