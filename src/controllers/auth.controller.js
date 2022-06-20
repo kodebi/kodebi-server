@@ -20,6 +20,12 @@ const signin = async (req, res) => {
             error: "Benutzer nicht gefunden"
         });
 
+    if (!req.body.password) {
+        return res.status(401).send({
+            error: "Falsches Passwort"
+        });
+    }
+
     if (!user.authenticate(req.body.password)) {
         return res.status(401).send({
             error: "Falsches Passwort"
@@ -93,8 +99,7 @@ const requireSignin = expressJwt({
 // Darf der Benutzer die Aktion ausfuehren?
 // Sein eigenes Profil bearbeiten ist in Ordnung
 const hasAuthorization = (req, res, next) => {
-    const authorized =
-        req.profile && req.auth && req.profile._id === req.auth._id;
+    const authorized = req.profile && req.auth && req.profile._id === req.auth._id;
 
     if (!authorized) {
         return res.status(403).json({
@@ -116,9 +121,7 @@ const hasAuthorizationForNewMessage = (req, res, next) => {
 };
 
 const hasAuthorizationForConversation = (req, res, next) => {
-    const isrecipient = req.conv.recipients.some(
-        (recipient) => recipient._id === req.auth._id
-    );
+    const isrecipient = req.conv.recipients.some((recipient) => recipient._id === req.auth._id);
 
     const authorized = req.auth && isrecipient;
 

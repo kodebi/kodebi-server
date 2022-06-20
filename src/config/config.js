@@ -4,6 +4,7 @@ dotenv.config();
 
 let cMongoUri = process.env.MONGODB_URI;
 if (process.env.NODE_ENV === "test") {
+    console.info("Starting in test env");
     cMongoUri = process.env.MONGODB_URI_TEST;
 }
 

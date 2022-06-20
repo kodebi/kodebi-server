@@ -108,6 +108,7 @@ const update = async (req, res) => {
             });
         }
         // lodash - merge and extend user profile
+        // restrict changes
         user = extend(user, req.body);
         await user.save();
         return res.status(200).json({

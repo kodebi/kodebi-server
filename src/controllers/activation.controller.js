@@ -41,11 +41,11 @@ const requestUserActivation = async (req, res) => {
             error: err.message
         });
     }
-    console.log(token);
 
     const link = "http://app.kodebi.de/auth/completeRegistration/?token=" + registerToken + "&id=" + req.ownProfile._id;
 
     if (process.env.NODE_ENV === "test") {
+        console.info("Sending token directly");
         // Get token directly for testing
         return res.status(200).json({
             message: "Benutzer erfolgreich erstellt!",
@@ -54,7 +54,7 @@ const requestUserActivation = async (req, res) => {
         });
     }
 
-    // sendRegisterUserMail(req.ownProfile.email, link);
+    sendRegisterUserMail(req.ownProfile.email, link);
 
     return res.status(200).json({
         message: "Benutzer erfolgreich erstellt!",
@@ -92,6 +92,12 @@ async function sendRegisterUserMail(mailTo, resetLink) {
 
 const activateUser = async (req, res) => {
     // We need userid, token
+    if (!req.body.userId || !req.body.token) {
+        return res.status(401).json({
+            error: "Token nicht gefunden"
+        });
+    }
+
     const obId = mongoose.Types.ObjectId(req.body.userId);
     const activateToken = await registrationToken.findOne({ user: obId }).exec();
 
