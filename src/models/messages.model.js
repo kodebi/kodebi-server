@@ -40,49 +40,44 @@ const MessageSchema = new mongoose.Schema(
 );
 
 MessageSchema.virtual("message")
-    .set(function (message, next) {
+    .set(function (message) {
         // global secret?
-        this.message_secret = this.makeRandom(16);
-        const iv = this.makeRandom(16);
+        this.message_secret = this.makeRandom(32);
+        this.message_iv = this.makeRandom(16);
         const cipher = crypto.createCipheriv(
-            "aes-256-ctr",
-            this.message_secret,
-            iv
+            "aes-256-cbc",
+            Buffer.from(this.message_secret, "hex"),
+            Buffer.from(this.message_iv, "hex")
         );
 
-        const encrypted = Buffer.concat([
-            cipher.update(message, "utf8", "hex"),
-            cipher.final("hex")
-        ]);
+        let encrypted = cipher.update(message);
+        encrypted = Buffer.concat([encrypted, cipher.final()]);
 
-        this.message_iv = iv.toString("hex");
         this.message_encrypt = encrypted.toString("hex");
-
-        return next();
     })
     .get(function () {
         const decipher = crypto.createDecipheriv(
-            "aes-256-ctr",
+            "aes-256-cbc",
             this.message_secret,
             Buffer.from(this.message_iv, "hex")
         );
 
-        const decrpyted = Buffer.concat([
-            decipher.update(Buffer.from(this.message_encrypt, "hex")),
-            decipher.final()
-        ]);
+        const decrpyted = Buffer.concat([decipher.update(Buffer.from(this.message_encrypt, "hex")), decipher.final()]);
 
         return decrpyted.toString("utf8");
     });
 
 MessageSchema.methods = {
+    // makeRandom: function (b) {
+    //     crypto.randomBytes(b, (err, buf) => {
+    //         if (err) throw err;
+    //         return buf.toString("hex");
+    //     });
+    // }
     makeRandom: function (b) {
-        crypto.randomBytes(b, (err, buf) => {
-            if (err) throw err;
-            return buf.toString("hex");
-        });
+        return crypto.randomBytes(b).toString("hex");
     }
 };
 
-// export default mongoose.model("Message", MessageSchema);
-export default MessageSchema;
+const MessageModel = mongoose.model("Message", MessageSchema);
+export { MessageSchema, MessageModel };

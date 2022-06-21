@@ -1,5 +1,5 @@
 import Conversation from "../models/conversation.model.js";
-import Message from "../models/messages.model.js";
+import { MessageModel } from "../models/messages.model.js";
 
 const createConv = async (req, res) => {
     // Erstelt erste Nachricht und die zugehoerige Conversation
@@ -7,13 +7,12 @@ const createConv = async (req, res) => {
     // add current user as sender
     req.body.senderId = req.auth._id;
     req.body.senderName = req.auth.name;
-    const message = new Message(req.body);
+    const message = new MessageModel({ message: req.body.message });
 
-    // Erstelle Conversation für Nachricht
-    req.body.recipients = [req.body.sender, req.body.reciever];
-    req.body.messages = [message];
-    const conversation = new Conversation(req.body);
-    // conversation.messages.push({ message });
+    // Erstelle Conversation
+    const conversation = new Conversation({ topic: req.body.topic, group: req.body.group });
+    conversation.recipients.push({ id: req.body.senderId, name: req.body.senderName });
+    conversation.messages.push(message);
 
     try {
         // Speichere Nachricht
@@ -28,7 +27,7 @@ const createConv = async (req, res) => {
     } catch (err) {
         return res.status(500).json({
             what: err.name,
-            error: err.message
+            err: err.message
         });
     }
 };
@@ -38,16 +37,12 @@ const writeMessage = async (req, res) => {
     // add current user as sender
     req.body.senderId = req.auth._id;
     req.body.senderName = req.auth.name;
-    const message = new Message(req.body);
+    const message = new MessageModel(req.body);
 
     try {
         // await message.save();
         // Add message to conversation
-        await Conversation.findByIdAndUpdate(
-            req.conv._id,
-            { $push: { messages: message } },
-            { new: true }
-        ).exec();
+        await Conversation.findByIdAndUpdate(req.conv._id, { $push: { messages: message } }, { new: true }).exec();
 
         return res.status(201).json({
             message: "Nachricht erfolgreich gesendet!",
@@ -56,7 +51,8 @@ const writeMessage = async (req, res) => {
         });
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
@@ -65,11 +61,9 @@ const writeMessage = async (req, res) => {
 const getConvByUser = async (req, res, next) => {
     try {
         // populate messages.send _id name
+        // fix here
         let convs = await Conversation.find({ recipients: req.params.userId })
-            .populate(
-                "messages",
-                "_id message senderName senderId recieverName recieverId createdAt"
-            )
+            // .populate("messages", "_id message senderName senderId recieverName recieverId createdAt")
             .exec();
         if (!convs) {
             return res.status(404).json({
@@ -82,7 +76,8 @@ const getConvByUser = async (req, res, next) => {
         return next();
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
@@ -91,10 +86,7 @@ const getConvByUser = async (req, res, next) => {
 const convByID = async (req, res, next) => {
     try {
         const conv = await Conversation.findById(req.params.convId)
-            .populate(
-                "messages",
-                "_id message senderName senderId recieverName recieverId createdAt"
-            )
+            .populate("messages", "_id message senderName senderId recieverName recieverId createdAt")
             .exec();
         if (!conv) {
             return res.status(404).json({
@@ -106,9 +98,7 @@ const convByID = async (req, res, next) => {
         // messages.slice(-1)[0]
         // messages[messages.length -1]
         if (conv.messages.slice(-1)[0].senderId !== req.auth._id) {
-            await conv
-                .updateOne({ readAt: Date.now() }, { timestamps: false })
-                .exec();
+            await conv.updateOne({ readAt: Date.now() }, { timestamps: false }).exec();
         }
 
         req.conv = conv;

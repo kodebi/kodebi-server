@@ -26,6 +26,6 @@ protectedRouter
 // Erhalte alle Conversations in denen der User beteiligt ist
 protectedRouter
     .route("/user/:userId")
-    .get(authCtrl.hasAuthorization, conversationCtrl.getConvByUser, conversationCtrl.read);
+    .get(authCtrl.hasAuthorizationForOwnMsg, conversationCtrl.getConvByUser, conversationCtrl.read);
 
 export default { protectedRouter };

@@ -109,8 +109,18 @@ const hasAuthorization = (req, res, next) => {
     return next();
 };
 
+const hasAuthorizationForOwnMsg = (req, res, next) => {
+    const authorized = req.auth && req.params.userId === req.auth._id;
+    if (!authorized) {
+        return res.status(403).json({
+            error: "Benutzer ist nicht berechtigt"
+        });
+    }
+    return next();
+};
+
 const hasAuthorizationForNewMessage = (req, res, next) => {
-    const authorized = req.body.sender === req.auth._id;
+    const authorized = req.body.senderId === req.auth._id;
 
     if (!authorized) {
         return res.status(403).json({
@@ -151,5 +161,6 @@ export default {
     hasAuthorization,
     hasAuthorizationForBook,
     hasAuthorizationForConversation,
-    hasAuthorizationForNewMessage
+    hasAuthorizationForNewMessage,
+    hasAuthorizationForOwnMsg
 };

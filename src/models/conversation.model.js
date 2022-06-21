@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Message from "./messages.model.js";
+import { MessageSchema } from "./messages.model.js";
 
 const ConversationSchema = new mongoose.Schema(
     {
@@ -14,7 +14,7 @@ const ConversationSchema = new mongoose.Schema(
                 }
             }
         ],
-        messages: [Message],
+        messages: [MessageSchema],
         topic: {
             type: String,
             trim: true,
