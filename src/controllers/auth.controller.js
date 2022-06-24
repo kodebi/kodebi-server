@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import expressJwt from "express-jwt";
 import User from "../models/user.model.js";
 import config from "../config/config.js";
+import mongoose from "mongoose";
 
 const signin = async (req, res) => {
     let user;
@@ -131,7 +132,7 @@ const hasAuthorizationForNewMessage = (req, res, next) => {
 };
 
 const hasAuthorizationForConversation = (req, res, next) => {
-    const isrecipient = req.conv.recipients.some((recipient) => recipient._id === req.auth._id);
+    const isrecipient = req.conv.recipients.some((recipient) => recipient.equals(req.auth._id));
 
     const authorized = req.auth && isrecipient;
 

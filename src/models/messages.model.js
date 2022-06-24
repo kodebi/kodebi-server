@@ -21,15 +21,11 @@ const MessageSchema = new mongoose.Schema(
             minLength: [2, "Empfänger Name zu kurz"],
             maxLength: [20, "Empfänger Name zu lang"]
         },
-        message_encrypt: {
+        message: {
             type: String,
-            required: [true, "Bitte Nachricht eingeben"]
-        },
-        message_secret: {
-            type: String
-        },
-        message_iv: {
-            type: String
+            required: [true, "Bitte Nachricht eingeben"],
+            minLength: [2, "Nachricht zu kurz"],
+            maxLength: [500, "Nachricht zu lang"]
         }
     },
     {
@@ -38,46 +34,6 @@ const MessageSchema = new mongoose.Schema(
         }
     }
 );
-
-MessageSchema.virtual("message")
-    .set(function (message) {
-        // global secret?
-        this.message_secret = this.makeRandom(32);
-        this.message_iv = this.makeRandom(16);
-        const cipher = crypto.createCipheriv(
-            "aes-256-cbc",
-            Buffer.from(this.message_secret, "hex"),
-            Buffer.from(this.message_iv, "hex")
-        );
-
-        let encrypted = cipher.update(message);
-        encrypted = Buffer.concat([encrypted, cipher.final()]);
-
-        this.message_encrypt = encrypted.toString("hex");
-    })
-    .get(function () {
-        const decipher = crypto.createDecipheriv(
-            "aes-256-cbc",
-            this.message_secret,
-            Buffer.from(this.message_iv, "hex")
-        );
-
-        const decrpyted = Buffer.concat([decipher.update(Buffer.from(this.message_encrypt, "hex")), decipher.final()]);
-
-        return decrpyted.toString("utf8");
-    });
-
-MessageSchema.methods = {
-    // makeRandom: function (b) {
-    //     crypto.randomBytes(b, (err, buf) => {
-    //         if (err) throw err;
-    //         return buf.toString("hex");
-    //     });
-    // }
-    makeRandom: function (b) {
-        return crypto.randomBytes(b).toString("hex");
-    }
-};
 
 const MessageModel = mongoose.model("Message", MessageSchema);
 export { MessageSchema, MessageModel };

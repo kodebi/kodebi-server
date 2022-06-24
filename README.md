@@ -145,7 +145,7 @@ Testen mit https://install.advancedrestclient.com/install
 
 | Feld         |       Typ       |               Beschreibung |
 | ------------ | :-------------: | -------------------------: |
-| senderId     | mongoose.userid |                  Notwendig |
+| senderId     | mongoose.userid |      automatisch generiert |
 | senderName   |     string      |      automatisch generiert |
 | recieverId   | mongoose.userid |                  Notwendig |
 | recieverName |     string      |      automatisch generiert |

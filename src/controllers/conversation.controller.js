@@ -1,17 +1,48 @@
 import Conversation from "../models/conversation.model.js";
 import { MessageModel } from "../models/messages.model.js";
+import User from "../models/user.model.js";
+import mongoose from "mongoose";
+
+const userByID = async (req) => {
+    try {
+        let user = await User.findById(req.body.recieverId, {
+            hashed_password: 0,
+            salt: 0,
+            borrowedBooks: 0,
+            bookmarkedBooks: 0,
+            group: 0
+        }).exec();
+
+        return user;
+    } catch (err) {
+        return undefined;
+    }
+};
 
 const createConv = async (req, res) => {
+    const receiver = await userByID(req);
+
+    if (!receiver) {
+        return res.status(404).json({
+            error: "User nicht gefunden"
+        });
+    }
+
     // Erstelt erste Nachricht und die zugehoerige Conversation
     // Füge erste Nachricht zu Conversation hinzu
     // add current user as sender
-    req.body.senderId = req.auth._id;
-    req.body.senderName = req.auth.name;
-    const message = new MessageModel({ message: req.body.message });
+    const message = new MessageModel({
+        message: req.body.message,
+        senderId: req.auth._id,
+        senderName: req.auth.name,
+        recieverId: req.body.recieverId,
+        recieverName: receiver.name
+    });
 
     // Erstelle Conversation
     const conversation = new Conversation({ topic: req.body.topic, group: req.body.group });
-    conversation.recipients.push({ id: req.body.senderId, name: req.body.senderName });
+    conversation.recipients.push(req.auth._id);
+    conversation.recipients.push(req.body.recieverId);
     conversation.messages.push(message);
 
     try {
@@ -34,10 +65,21 @@ const createConv = async (req, res) => {
 
 // Update conversation with new message
 const writeMessage = async (req, res) => {
-    // add current user as sender
-    req.body.senderId = req.auth._id;
-    req.body.senderName = req.auth.name;
-    const message = new MessageModel(req.body);
+    const receiver = await userByID(req);
+
+    if (!receiver) {
+        return res.status(404).json({
+            error: "User nicht gefunden"
+        });
+    }
+
+    const message = new MessageModel({
+        message: req.body.message,
+        senderId: req.auth._id,
+        senderName: req.auth.name,
+        recieverId: req.body.recieverId,
+        recieverName: receiver.name
+    });
 
     try {
         // await message.save();
@@ -59,12 +101,10 @@ const writeMessage = async (req, res) => {
 
 // Get All Conversations from User
 const getConvByUser = async (req, res, next) => {
+    const obId = mongoose.Types.ObjectId(req.params.userId);
+
     try {
-        // populate messages.send _id name
-        // fix here
-        let convs = await Conversation.find({ recipients: req.params.userId })
-            // .populate("messages", "_id message senderName senderId recieverName recieverId createdAt")
-            .exec();
+        let convs = await Conversation.find({ recipients: obId }).exec();
         if (!convs) {
             return res.status(404).json({
                 error: "Benutzer hat noch keine Unterhaltungen"
@@ -85,9 +125,7 @@ const getConvByUser = async (req, res, next) => {
 // Füge die Conversation mit bestimmer ID zum request hinzu
 const convByID = async (req, res, next) => {
     try {
-        const conv = await Conversation.findById(req.params.convId)
-            .populate("messages", "_id message senderName senderId recieverName recieverId createdAt")
-            .exec();
+        const conv = await Conversation.findById(req.params.convId).exec();
         if (!conv) {
             return res.status(404).json({
                 error: "Unterhaltung nicht gefunden"
@@ -95,8 +133,7 @@ const convByID = async (req, res, next) => {
         }
 
         // check if sender of last message is not current user, then update readAt timestamp
-        // messages.slice(-1)[0]
-        // messages[messages.length -1]
+        // fix
         if (conv.messages.slice(-1)[0].senderId !== req.auth._id) {
             await conv.updateOne({ readAt: Date.now() }, { timestamps: false }).exec();
         }
@@ -120,20 +157,22 @@ const countUnreadMessages = async (req, res) => {
 
         if (conv.updatedAt > conv.readAt) {
             // Only Check last 5 messages
-            for (let i = 0; i < 5; i++) {
-                if (conv.messages.slice(-1)[i].senderId !== req.auth._id) {
+            // fix
+            for (let i = -1; i > -6; i--) {
+                if (conv.messages.slice(i)[0].senderId !== req.auth._id) {
                     counterUnread = counterUnread + 1;
                 }
             }
         }
 
         return res.status(200).json({
-            message: "Zahl der Ungelesene Unterhaltungen erhalten",
+            message: "Zahl der ungelesenen Unterhaltungen erhalten",
             unread: counterUnread
         });
     } catch (error) {
         return res.status(500).json({
-            what: error.name
+            what: error.name,
+            error: error.message
         });
     }
 };

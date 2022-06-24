@@ -5,13 +5,8 @@ const ConversationSchema = new mongoose.Schema(
     {
         recipients: [
             {
-                id: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: "User"
-                },
-                name: {
-                    type: String
-                }
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User"
             }
         ],
         messages: [MessageSchema],
