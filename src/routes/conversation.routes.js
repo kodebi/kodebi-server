@@ -19,7 +19,7 @@ protectedRouter
 protectedRouter
     .route("/:convId")
     .all(conversationCtrl.convByID, authCtrl.hasAuthorizationForConversation)
-    .get(conversationCtrl.read)
+    .get(conversationCtrl.updateUnRead, conversationCtrl.read)
     .post(conversationCtrl.writeMessage)
     .delete(conversationCtrl.deleteConvByID);
 

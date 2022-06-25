@@ -29,8 +29,6 @@ const createConv = async (req, res) => {
     }
 
     // Erstelt erste Nachricht und die zugehoerige Conversation
-    // Füge erste Nachricht zu Conversation hinzu
-    // add current user as sender
     const message = new MessageModel({
         message: req.body.message,
         senderId: req.auth._id,
@@ -46,9 +44,6 @@ const createConv = async (req, res) => {
     conversation.messages.push(message);
 
     try {
-        // Speichere Nachricht
-        // await message.save();
-        // Speichere Conversation
         await conversation.save();
         return res.status(201).json({
             message: "Nachricht erfolgreich gesendet!",
@@ -111,7 +106,6 @@ const getConvByUser = async (req, res, next) => {
             });
         }
 
-        // Add found conversations to req for counting
         req.conv = convs;
         return next();
     } catch (err) {
@@ -130,12 +124,6 @@ const convByID = async (req, res, next) => {
             return res.status(404).json({
                 error: "Unterhaltung nicht gefunden"
             });
-        }
-
-        // check if sender of last message is not current user, then update readAt timestamp
-        // fix
-        if (conv.messages.slice(-1)[0].senderId !== req.auth._id) {
-            await conv.updateOne({ readAt: Date.now() }, { timestamps: false }).exec();
         }
 
         req.conv = conv;
@@ -157,14 +145,15 @@ const countUnreadMessages = async (req, res) => {
 
         if (conv.updatedAt > conv.readAt) {
             // Only Check last 5 messages
-            // fix
-            for (let i = -1; i > -6; i--) {
-                if (conv.messages.slice(i)[0].senderId !== req.auth._id) {
+            const msgs = conv.messages.slice(-5).reverse();
+            for (const msg of msgs) {
+                if (!msg.senderId.equals(req.auth._id)) {
                     counterUnread = counterUnread + 1;
+                } else {
+                    break;
                 }
             }
         }
-
         return res.status(200).json({
             message: "Zahl der ungelesenen Unterhaltungen erhalten",
             unread: counterUnread
@@ -186,12 +175,8 @@ const deleteConvByID = async (req, res) => {
         }
 
         if (isLastRecipient) {
-            // Remove messages
-            // Notwendig?
-            // await conv.messages.remove();
-
-            // Delete conv if last iser
             const deletedConv = await conv.remove();
+            // msg should be deleted with parent
 
             return res.status(200).json({
                 message: "Unterhaltung gelöscht",
@@ -203,8 +188,6 @@ const deleteConvByID = async (req, res) => {
             let pos = recipients.indexOf(req.auth._id);
             // remove one element after pos (e.g. only the element on pos)
             recipients.splice(pos, 1);
-
-            // Delete messages
 
             conv.recipients = recipients;
             await conv.save();
@@ -221,8 +204,17 @@ const deleteConvByID = async (req, res) => {
     }
 };
 
-const read = (req, res) => {
+const read = async (req, res) => {
     return res.status(200).json(req.conv);
+};
+
+const updateUnRead = async (req, _, next) => {
+    // check if sender of last message is not current user, then update readAt timestamp
+    const lastMsg = req.conv.messages.slice(-1)[0];
+    if (!lastMsg.senderId.equals(req.auth._id)) {
+        await req.conv.updateOne({ readAt: Date.now() }, { timestamps: false }).exec();
+    }
+    return next();
 };
 
 export default {
@@ -232,5 +224,6 @@ export default {
     writeMessage,
     getConvByUser,
     deleteConvByID,
-    countUnreadMessages
+    countUnreadMessages,
+    updateUnRead
 };

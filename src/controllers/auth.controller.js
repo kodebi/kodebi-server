@@ -100,7 +100,7 @@ const requireSignin = expressJwt({
 // Darf der Benutzer die Aktion ausfuehren?
 // Sein eigenes Profil bearbeiten ist in Ordnung
 const hasAuthorization = (req, res, next) => {
-    const authorized = req.profile && req.auth && req.profile._id === req.auth._id;
+    const authorized = req.profile && req.auth && req.profile._id.equals(req.auth._id);
 
     if (!authorized) {
         return res.status(403).json({
@@ -111,7 +111,7 @@ const hasAuthorization = (req, res, next) => {
 };
 
 const hasAuthorizationForOwnMsg = (req, res, next) => {
-    const authorized = req.auth && req.params.userId === req.auth._id;
+    const authorized = req.auth && req.params.userId.equals(req.auth._id);
     if (!authorized) {
         return res.status(403).json({
             error: "Benutzer ist nicht berechtigt"
@@ -121,7 +121,7 @@ const hasAuthorizationForOwnMsg = (req, res, next) => {
 };
 
 const hasAuthorizationForNewMessage = (req, res, next) => {
-    const authorized = req.body.senderId === req.auth._id;
+    const authorized = req.body.senderId.equals(req.auth._id);
 
     if (!authorized) {
         return res.status(403).json({
@@ -146,7 +146,7 @@ const hasAuthorizationForConversation = (req, res, next) => {
 
 //Dürfen BenutzerInnen etwas an einem Buch ändern?
 const hasAuthorizationForBook = (req, res, next) => {
-    const authorized = req.auth && req.book.owner === req.auth._id;
+    const authorized = req.auth && req.book.owner.equals(req.auth._id);
     if (!authorized) {
         return res.status(403).json({
             error: "Benutzer ist nicht berechtigt für das Buch"
