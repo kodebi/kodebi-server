@@ -147,7 +147,7 @@ const hasAuthorizationForConversation = (req, res, next) => {
 
 //Dürfen BenutzerInnen etwas an einem Buch ändern?
 const hasAuthorizationForBook = (req, res, next) => {
-    const authorized = req.auth && req.book.owner.equals(req.auth._id);
+    const authorized = req.auth && req.book.ownerId.equals(req.auth._id);
     if (!authorized) {
         return res.status(403).json({
             error: "Benutzer ist nicht berechtigt für das Buch"

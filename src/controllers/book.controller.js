@@ -10,15 +10,15 @@ const create = async (req, res) => {
         req.body.ownerName = req.auth.name;
         req.body.ownerId = req.auth._id;
 
-        if (!res.locals.BookUrl || !res.locals.BookImageId) {
-            return res.status(400).json({
-                message: "Dein Buch braucht ein Bild"
-            });
-        }
+        // book.image = res.locals.BookUrl;
+        // book.imagekitIoId = res.locals.BookImageId;
+        // if (!res.locals.BookUrl || !res.locals.BookImageId) {
+        //     return res.status(400).json({
+        //         message: "Dein Buch braucht ein Bild"
+        //     });
+        // }
 
         const book = new Book(req.body);
-        book.image = res.locals.BookUrl;
-        book.imagekitIoId = res.locals.BookImageId;
 
         await book.save();
         return res.status(200).json({
@@ -38,7 +38,9 @@ const list = async (req, res) => {
     try {
         const bookList = await Book.find({
             deletedAt: { $eq: undefined }
-        }).select("name author image category ownerId ownerName language status");
+        })
+            .select("name author image category ownerId ownerName language status")
+            .exec();
         res.json(bookList);
     } catch (err) {
         return res.status(500).json({
@@ -61,7 +63,7 @@ const bookByUser = async (req, res) => {
                 error: "Benutzer hat noch keine Bücher"
             });
         }
-        res.json(books);
+        return res.json(books);
     } catch (err) {
         return res.status(500).json({
             what: err.name,
@@ -118,7 +120,7 @@ const update = async (req, res) => {
         // }
         book = extend(book, req.body);
         await book.save();
-        res.json(book);
+        return res.json(book);
     } catch (err) {
         return res.status(500).json({
             what: err.name
@@ -137,7 +139,7 @@ const updateImage = async (req, res) => {
 
         // Save modified book to db
         await book.save();
-        res.json(book);
+        return res.json(book);
     } catch (err) {
         return res.status(500).json({
             what: err.name,
@@ -168,6 +170,8 @@ const remove = async (req, res) => {
 
 const borrow = async (req, res) => {
     try {
+        console.log(req.profile, req.book, req.ownProfile);
+
         const borrowListId = req.profile.borrowedBooks._id;
         const ownBorrowListId = req.ownProfile.borrowedBooks._id;
         let book = req.book;

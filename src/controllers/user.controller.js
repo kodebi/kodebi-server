@@ -53,8 +53,6 @@ const userByID = async (req, res, next) => {
         let user = await User.findById(req.params.userId, {
             hashed_password: 0,
             salt: 0,
-            borrowedBooks: 0,
-            bookmarkedBooks: 0,
             group: 0
         }).exec();
         if (!user) {
@@ -95,6 +93,9 @@ const getOwnUser = async (req, res, next) => {
 const read = (req, res) => {
     req.profile.hashed_password = undefined;
     req.profile.salt = undefined;
+    req.profile.borrowedBooks = undefined;
+    req.profile.bookmarkedBooks = undefined;
+    // or only res specific fields?
     return res.json(req.profile);
 };
 
