@@ -8,8 +8,9 @@ const signin = async (req, res) => {
     let user;
     try {
         user = await User.findOne({
-            email: req.body.email
-        });
+            email: req.body.email,
+            deletedAt: { $eq: undefined }
+        }).exec();
     } catch (err) {
         return res.status(404).json({
             error: "Benutzer nicht gefunden"

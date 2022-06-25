@@ -108,7 +108,7 @@ const update = async (req, res) => {
             });
         }
         // lodash - merge and extend user profile
-        // restrict changes
+        // restrict changes?
         user = extend(user, req.body);
         await user.save();
         return res.status(200).json({
@@ -125,9 +125,9 @@ const update = async (req, res) => {
 // loesche user
 const remove = async (req, res) => {
     try {
-        // Just set inactive
+        // Soft Delete
+        // Delete token in browser
         let user = req.profile;
-        // Set inactive
         user.deletedAt = Date.now();
         await user.save();
 
@@ -142,10 +142,6 @@ const remove = async (req, res) => {
     }
 };
 
-const log = async (req, res) => {
-    console.info("Just a debug log");
-};
-
 export default {
     create,
     userByID,
@@ -153,6 +149,5 @@ export default {
     read,
     list,
     remove,
-    update,
-    log
+    update
 };
