@@ -56,7 +56,10 @@ protectedRouter
 //Bookmarks
 protectedRouter.route("/bookmark/").get(userCtrl.getOwnUser, bookCtrl.getBookmarks);
 
-protectedRouter.route("/bookmark/:bookId").put(userCtrl.getOwnUser, bookCtrl.bookByID, bookCtrl.bookmark);
+protectedRouter
+    .route("/bookmark/:bookId")
+    .put(userCtrl.getOwnUser, bookCtrl.bookByID, bookCtrl.bookmark)
+    .delete(userCtrl.getOwnUser, bookCtrl.bookByID, bookCtrl.deleteBookmark);
 
 // Only show some books?
 const router = express.Router();

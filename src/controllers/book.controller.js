@@ -170,8 +170,6 @@ const remove = async (req, res) => {
 
 const borrow = async (req, res) => {
     try {
-        console.log(req.profile, req.book, req.ownProfile);
-
         const borrowListId = req.profile.borrowedBooks._id;
         const ownBorrowListId = req.ownProfile.borrowedBooks._id;
         let book = req.book;
@@ -181,6 +179,7 @@ const borrow = async (req, res) => {
         book.status = "Verliehen";
         await book.save();
 
+        // setAll
         await BorrowedBooks.findByIdAndUpdate(borrowListId, { $push: { books: book } }, { upsert: true }).exec();
 
         await BorrowedBooks.findByIdAndUpdate(
@@ -194,6 +193,7 @@ const borrow = async (req, res) => {
 
         return res.status(201).json({
             message: "Buch ausgliehen",
+            book: book._id,
             borrower: req.profile.name
         });
     } catch (err) {
@@ -220,6 +220,7 @@ const bookmark = async (req, res) => {
     let book = req.book;
 
     try {
+        // setAll
         await BookmarkedBooks.findByIdAndUpdate(
             req.ownProfile.bookmarkedBooks._id,
             { $push: { books: book } },
@@ -227,7 +228,8 @@ const bookmark = async (req, res) => {
         ).exec();
 
         return res.status(201).json({
-            message: "Buch gemerkt"
+            message: "Buch gemerkt",
+            book: book._id
         });
     } catch (err) {
         return res.status(500).json({
@@ -243,11 +245,12 @@ const deleteBookmark = async (req, res) => {
         let book = req.book;
 
         await BookmarkedBooks.findByIdAndUpdate(bookmarksId, {
-            $pull: { books: book }
+            $pullAll: { books: [book._id] }
         }).exec();
 
         return res.status(201).json({
-            message: "Buch von Merkliste entfernt"
+            message: "Buch von Merkliste entfernt",
+            book: book._id
         });
     } catch (err) {
         return res.status(500).json({
@@ -271,16 +274,26 @@ const getBookmarks = async (req, res) => {
 
 const returnBook = async (req, res) => {
     try {
+        const borrower = await User.findById(req.book.borrowerId);
+        if (!borrower) {
+            return res.status(201).json({
+                message: "Buch nicht verliehen"
+            });
+        }
+
         const ownBorrowListId = req.ownProfile.borrowedBooks._id;
         let book = req.book;
-        const borrower = await User.findById(req.book.borrowerId);
-
+        // pullAll
         await BorrowedBooks.findByIdAndUpdate(ownBorrowListId, {
-            $pull: { books: book }
+            $pull: {
+                books: { _id: book._id }
+            }
         }).exec();
 
         await BorrowedBooks.findByIdAndUpdate(borrower.borrowedBooks, {
-            $pull: { books: book }
+            $pull: {
+                books: { _id: book._id }
+            }
         }).exec();
 
         book.status = "Bereit zum Verleihen";
@@ -290,7 +303,7 @@ const returnBook = async (req, res) => {
 
         return res.status(201).json({
             message: "Buch zurückgegeben",
-            returner: req.profile.name
+            returner: borrower.name
         });
     } catch (err) {
         return res.status(500).json({
