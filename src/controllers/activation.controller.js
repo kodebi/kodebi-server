@@ -44,15 +44,15 @@ const requestUserActivation = async (req, res) => {
 
     const link = "http://app.kodebi.de/auth/completeRegistration/?token=" + registerToken + "&id=" + req.ownProfile._id;
 
-    if (process.env.NODE_ENV === "test") {
-        console.info("Sending token directly");
-        // Get token directly for testing
-        return res.status(200).json({
-            message: "Benutzer erfolgreich erstellt!",
-            user: req.ownProfile._id,
-            token: registerToken
-        });
-    }
+    // if (process.env.NODE_ENV === "test") {
+    //     console.info("Sending token directly");
+    //     // Get token directly for testing
+    //     return res.status(200).json({
+    //         message: "Benutzer erfolgreich erstellt!",
+    //         user: req.ownProfile._id,
+    //         token: registerToken
+    //     });
+    // }
 
     sendRegisterUserMail(req.ownProfile.email, link);
 

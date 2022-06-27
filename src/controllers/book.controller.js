@@ -10,13 +10,13 @@ const create = async (req, res) => {
         req.body.ownerName = req.auth.name;
         req.body.ownerId = req.auth._id;
 
-        // book.image = res.locals.BookUrl;
-        // book.imagekitIoId = res.locals.BookImageId;
-        // if (!res.locals.BookUrl || !res.locals.BookImageId) {
-        //     return res.status(400).json({
-        //         message: "Dein Buch braucht ein Bild"
-        //     });
-        // }
+        book.image = res.locals.BookUrl;
+        book.imagekitIoId = res.locals.BookImageId;
+        if (!res.locals.BookUrl || !res.locals.BookImageId) {
+            return res.status(400).json({
+                message: "Dein Buch braucht ein Bild"
+            });
+        }
 
         const book = new Book(req.body);
 

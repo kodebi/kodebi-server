@@ -11,7 +11,7 @@ const protectedRouter = express.Router();
 // Create book
 protectedRouter.route("/book/").post(imgCtrl.UploadImageToMemory, imgCtrl.UploadBookImageToImagekit, bookCtrl.create);
 
-protectedRouter.route("/book/test/").post(bookCtrl.create);
+// protectedRouter.route("/book/test/").post(bookCtrl.create);
 
 // get book by bookid
 protectedRouter

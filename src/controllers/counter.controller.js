@@ -16,11 +16,13 @@ const getBorrowCounter = async (_, res) => {
         }
 
         return res.status(201).json({
-            Counter: counter.count
+            counter: counter[0].count,
+            updatedAt: counter[0].updatedAt
         });
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            error: err.message
         });
     }
 };
@@ -28,11 +30,7 @@ const getBorrowCounter = async (_, res) => {
 const incremenBorrowCounter = async (_, res, next) => {
     try {
         // const counter =
-        await Counter.findOneAndUpdate(
-            { name: mainCounterName },
-            { $inc: { count: 1 } },
-            { new: true, upsert: true }
-        );
+        await Counter.findOneAndUpdate({ name: mainCounterName }, { $inc: { count: 1 } }, { new: true, upsert: true });
         return next();
         // req.count = counter;
         // return res.status(201).json({
@@ -40,7 +38,8 @@ const incremenBorrowCounter = async (_, res, next) => {
         // });
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            error: err.message
         });
     }
 };

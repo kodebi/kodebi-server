@@ -33,16 +33,16 @@ const requestPasswordReset = async (req, res) => {
     }
     const link = "http://app.kodebi.de/auth/resetPassword?token=" + resetToken + "&id=" + user._id;
 
-    if (process.env.NODE_ENV === "test") {
-        console.info("Sending token directly");
-        // Get token directly for testing
-        return res.status(200).json({
-            message: "Benutzer erfolgreich erstellt!",
-            user: user._id,
-            token: resetToken,
-            link: link
-        });
-    }
+    // if (process.env.NODE_ENV === "test") {
+    //     console.info("Sending token directly");
+    //     // Get token directly for testing
+    //     return res.status(200).json({
+    //         message: "Benutzer erfolgreich erstellt!",
+    //         user: user._id,
+    //         token: resetToken,
+    //         link: link
+    //     });
+    // }
 
     sendPasswordResetMail(user.email, link);
 
@@ -80,8 +80,12 @@ async function sendPasswordResetMail(mailTo, resetLink) {
 
 const resetPassword = async (req, res) => {
     // We need userid, reset token, new password
-    // Find req from query?
-    // Add Route Params?
+    if (!req.body.password) {
+        return res.status(500).json({
+            error: "Ein neues Passwort ist notwendig."
+        });
+    }
+
     const resetToken = await passwordResetToken.findOne({ user: req.body.userId }).exec();
     if (!resetToken) {
         return res.status(401).json({
@@ -107,11 +111,6 @@ const resetPassword = async (req, res) => {
         });
     }
 
-    if (!req.body.password) {
-        return res.status(500).json({
-            error: "Ein Passwort ist notwendig."
-        });
-    }
     if (req.body.password < 6) {
         return res.status(500).json({
             error: "Dein Passwort muss mindestens 6 Zeichen lang sein."
