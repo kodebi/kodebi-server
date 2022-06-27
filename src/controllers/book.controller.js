@@ -170,16 +170,22 @@ const remove = async (req, res) => {
 
 const borrow = async (req, res) => {
     try {
-        const borrowListId = req.profile.borrowedBooks._id;
-        const ownBorrowListId = req.ownProfile.borrowedBooks._id;
         let book = req.book;
+        if (book.borrowerId !== undefined) {
+            return res.status(201).json({
+                message: "Buch schon verliehen"
+            });
+        }
+
         book.borrowerId = req.profile._id;
         book.borrowerName = req.profile.name;
         book.timesBorrowed += 1;
         book.status = "Verliehen";
         await book.save();
 
-        // setAll
+        const borrowListId = req.profile.borrowedBooks._id;
+        const ownBorrowListId = req.ownProfile.borrowedBooks._id;
+
         await BorrowedBooks.findByIdAndUpdate(borrowListId, { $push: { books: book } }, { upsert: true }).exec();
 
         await BorrowedBooks.findByIdAndUpdate(
@@ -220,10 +226,9 @@ const bookmark = async (req, res) => {
     let book = req.book;
 
     try {
-        // setAll
         await BookmarkedBooks.findByIdAndUpdate(
             req.ownProfile.bookmarkedBooks._id,
-            { $push: { books: book } },
+            { $addToSet: { books: book } },
             { new: true, upsert: true }
         ).exec();
 
@@ -285,14 +290,14 @@ const returnBook = async (req, res) => {
         let book = req.book;
         // pullAll
         await BorrowedBooks.findByIdAndUpdate(ownBorrowListId, {
-            $pull: {
-                books: { _id: book._id }
+            $pullAll: {
+                books: [book._id]
             }
         }).exec();
 
         await BorrowedBooks.findByIdAndUpdate(borrower.borrowedBooks, {
-            $pull: {
-                books: { _id: book._id }
+            $pullAll: {
+                books: [book._id]
             }
         }).exec();
 
@@ -303,7 +308,8 @@ const returnBook = async (req, res) => {
 
         return res.status(201).json({
             message: "Buch zurückgegeben",
-            returner: borrower.name
+            book: book._id,
+            returner: borrower._id
         });
     } catch (err) {
         return res.status(500).json({
