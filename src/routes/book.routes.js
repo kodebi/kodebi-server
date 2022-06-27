@@ -1,53 +1,68 @@
-import express from 'express';
-import authCtrl from '../controllers/auth.controller';
-import bookCtrl from '../controllers/book.controller';
-import imgCtrl from '../controllers/image.controller';
-import userCtrl from '../controllers/user.controller';
+import express from "express";
+import authCtrl from "../controllers/auth.controller.js";
+import bookCtrl from "../controllers/book.controller.js";
+import imgCtrl from "../controllers/image.controller.js";
+import userCtrl from "../controllers/user.controller.js";
+import counterCtrl from "../controllers/counter.controller.js";
 
-const router = express.Router();
+// Route: /api/ book,borrow,return,bookmark
+const protectedRouter = express.Router();
+// book
+// Create book
+protectedRouter.route("/book/").post(imgCtrl.UploadImageToMemory, imgCtrl.UploadBookImageToImagekit, bookCtrl.create);
 
-router
-  .route('/')
-  .get(bookCtrl.list) //Seite mit allen hochgeladenen Büchern
-  .post(
-    authCtrl.requireSignin,
-    imgCtrl.UploadImageToMemory,
-    imgCtrl.UploadBookImageToImagekit,
-    bookCtrl.create
-  );
-
-// New Route to getBooks by User
-router.route('/user/:userId').get(authCtrl.requireSignin, bookCtrl.bookByUser);
+// protectedRouter.route("/book/test/").post(bookCtrl.create);
 
 // get book by bookid
-router
-  .route('/:bookId')
-  .get(authCtrl.requireSignin, bookCtrl.read) //Registrierung nötig
-  .put(
-    authCtrl.requireSignin,
-    authCtrl.hasAuthorizationForBook,
-    bookCtrl.update
-  ) // Update with PUT
-  .delete(
-    authCtrl.requireSignin,
-    authCtrl.hasAuthorizationForBook,
-    imgCtrl.MoveBookToDeleteFolder,
-    bookCtrl.remove
-  ); // Remove with DELETE
+protectedRouter
+    .route("/book/:bookId")
+    .all(bookCtrl.bookByID)
+    .get(bookCtrl.read)
+    .put(authCtrl.hasAuthorizationForBook, bookCtrl.update)
+    .delete(authCtrl.hasAuthorizationForBook, imgCtrl.MoveBookToDeleteFolder, bookCtrl.remove);
 
 // Update image
-router
-  .route('/image/:bookId')
-  .put(
-    authCtrl.requireSignin,
-    authCtrl.hasAuthorizationForBook,
-    imgCtrl.UploadImageToMemory,
-    imgCtrl.UploadBookImageToImagekit,
-    bookCtrl.updateImage
-  ); // Update with PUT
+protectedRouter
+    .route("/book/image/:bookId")
+    .put(
+        bookCtrl.bookByID,
+        authCtrl.hasAuthorizationForBook,
+        imgCtrl.UploadImageToMemory,
+        imgCtrl.UploadBookImageToImagekit,
+        bookCtrl.updateImage
+    );
 
-// add user and book id to req
-router.param('bookId', bookCtrl.bookByID);
-router.param('userId', userCtrl.userByID);
+// New Route to getBooks by User
+protectedRouter.route("/book/user/:userId").get(bookCtrl.bookByUser);
 
-export default router;
+// borrow
+protectedRouter.route("/borrow/").get(userCtrl.getOwnUser, bookCtrl.getBorrowed);
+
+protectedRouter
+    .route("/borrow/:bookId/user/:userId")
+    .put(
+        userCtrl.getOwnUser,
+        userCtrl.userByID,
+        bookCtrl.bookByID,
+        authCtrl.hasAuthorizationForBook,
+        counterCtrl.incremenBorrowCounter,
+        bookCtrl.borrow
+    );
+
+protectedRouter
+    .route("/return/:bookId")
+    .put(userCtrl.getOwnUser, bookCtrl.bookByID, authCtrl.hasAuthorizationForBook, bookCtrl.returnBook);
+
+//Bookmarks
+protectedRouter.route("/bookmark/").get(userCtrl.getOwnUser, bookCtrl.getBookmarks);
+
+protectedRouter
+    .route("/bookmark/:bookId")
+    .put(userCtrl.getOwnUser, bookCtrl.bookByID, bookCtrl.bookmark)
+    .delete(userCtrl.getOwnUser, bookCtrl.bookByID, bookCtrl.deleteBookmark);
+
+// Only show some books?
+const router = express.Router();
+router.route("/").get(bookCtrl.list); //Seite mit allen hochgeladenen Büchern
+
+export default { protectedRouter, router };

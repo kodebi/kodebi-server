@@ -1,111 +1,133 @@
-import Conversation from '../models/conversation.model';
-import Message from '../models/messages.model';
+import Conversation from "../models/conversation.model.js";
+import { MessageModel } from "../models/messages.model.js";
+import User from "../models/user.model.js";
+import mongoose from "mongoose";
+
+const userByID = async (req) => {
+    try {
+        let user = await User.findById(req.body.recieverId, {
+            hashed_password: 0,
+            salt: 0,
+            borrowedBooks: 0,
+            bookmarkedBooks: 0,
+            group: 0
+        }).exec();
+
+        return user;
+    } catch (err) {
+        return undefined;
+    }
+};
 
 const createConv = async (req, res) => {
-    // Erstelt erste Nachricht und die zugehoerige Conversation
-    // Füge erste Nachricht zu Conversation hinzu
-    // add current user as sender
-    req.body.sender = req.auth._id;
-    const message = new Message(req.body);
+    const receiver = await userByID(req);
 
-    // Erstelle Conversation für Nachricht
-    req.body.recipients = [req.body.sender, req.body.reciever];
-    req.body.messages = [message._id];
-    const conversation = new Conversation(req.body);
+    if (!receiver) {
+        return res.status(404).json({
+            error: "User nicht gefunden"
+        });
+    }
+
+    // Erstelt erste Nachricht und die zugehoerige Conversation
+    const message = new MessageModel({
+        message: req.body.message,
+        senderId: req.auth._id,
+        senderName: req.auth.name,
+        recieverId: req.body.recieverId,
+        recieverName: receiver.name
+    });
+
+    // Erstelle Conversation
+    const conversation = new Conversation({ topic: req.body.topic, group: req.body.group });
+    conversation.recipients.push(req.auth._id);
+    conversation.recipients.push(req.body.recieverId);
+    conversation.messages.push(message);
 
     try {
-        // Speichere Nachricht
-        await message.save();
-        // Speichere Conversation
         await conversation.save();
         return res.status(201).json({
-            message: 'Nachricht erfolgreich gesendet!',
+            message: "Nachricht erfolgreich gesendet!",
             nachricht: message,
             conversation: conversation
         });
     } catch (err) {
         return res.status(500).json({
             what: err.name,
-            error: err.message
+            err: err.message
         });
     }
 };
 
 // Update conversation with new message
 const writeMessage = async (req, res) => {
-    // add current user as sender
-    req.body.sender = req.auth._id;
-    const message = new Message(req.body);
+    const receiver = await userByID(req);
+
+    if (!receiver) {
+        return res.status(404).json({
+            error: "User nicht gefunden"
+        });
+    }
+
+    const message = new MessageModel({
+        message: req.body.message,
+        senderId: req.auth._id,
+        senderName: req.auth.name,
+        recieverId: req.body.recieverId,
+        recieverName: receiver.name
+    });
 
     try {
-        await message.save();
+        // await message.save();
         // Add message to conversation
-        let conversation = await Conversation.findByIdAndUpdate(
-            req.conv._id,
-            { $push: { messages: message } },
-            { new: true }
-        ).exec();
+        await Conversation.findByIdAndUpdate(req.conv._id, { $push: { messages: message } }, { new: true }).exec();
 
         return res.status(201).json({
-            message: 'Nachricht erfolgreich gesendet!',
-            nachricht: message,
-            conversation: conversation
+            message: "Nachricht erfolgreich gesendet!",
+            nachricht: message
+            // conversation: conversation
         });
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
 
 // Get All Conversations from User
 const getConvByUser = async (req, res, next) => {
+    const obId = mongoose.Types.ObjectId(req.params.userId);
+
     try {
-        // populate messages.send _id name
-        let convs = await Conversation.find({ recipients: req.params.userId })
-            .populate('recipients', '_id name')
-            .populate('messages', '_id message sender reciever createdAt')
-            .exec();
+        let convs = await Conversation.find({ recipients: obId }).exec();
         if (!convs) {
             return res.status(404).json({
-                error: 'User has no conversations'
+                error: "Benutzer hat noch keine Unterhaltungen"
             });
         }
 
-        // Add found conversations to req for counting
         req.conv = convs;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
-            what: err.name
+            what: err.name,
+            err: err.message
         });
     }
 };
 
 // Füge die Conversation mit bestimmer ID zum request hinzu
-const convByID = async (req, res, next, id) => {
+const convByID = async (req, res, next) => {
     try {
-        const conv = await Conversation.findById(id)
-            .populate('recipients', '_id name')
-            .populate('messages', '_id message sender reciever createdAt')
-            .exec();
+        const conv = await Conversation.findById(req.params.convId).exec();
         if (!conv) {
             return res.status(404).json({
-                error: 'Conversation not found'
+                error: "Unterhaltung nicht gefunden"
             });
         }
 
-        // check if sender of last message is not current user, then update readAt timestamp
-        // messages.slice(-1)[0]
-        // messages[messages.length -1]
-        if (conv.messages.slice(-1)[0].sender != req.auth._id) {
-            await conv
-                .updateOne({ readAt: Date.now() }, { timestamps: false })
-                .exec();
-        }
-
         req.conv = conv;
-        next();
+        return next();
     } catch (err) {
         return res.status(500).json({
             what: err.name,
@@ -123,20 +145,23 @@ const countUnreadMessages = async (req, res) => {
 
         if (conv.updatedAt > conv.readAt) {
             // Only Check last 5 messages
-            for (let i = 0; i < 5; i++) {
-                if (conv.messages.slice(-1)[i].sender != req.auth._id) {
+            const msgs = conv.messages.slice(-5).reverse();
+            for (const msg of msgs) {
+                if (!msg.senderId.equals(req.auth._id)) {
                     counterUnread = counterUnread + 1;
+                } else {
+                    break;
                 }
             }
         }
-
         return res.status(200).json({
-            message: 'Unread Conversations successfully requested!',
+            message: "Zahl der ungelesenen Unterhaltungen erhalten",
             unread: counterUnread
         });
     } catch (error) {
         return res.status(500).json({
-            what: err.name
+            what: error.name,
+            error: error.message
         });
     }
 };
@@ -150,11 +175,11 @@ const deleteConvByID = async (req, res) => {
         }
 
         if (isLastRecipient) {
-            // Delete conv if last iser
-            let deletedConv = await conv.remove();
+            const deletedConv = await conv.remove();
+            // msg should be deleted with parent
 
             return res.status(200).json({
-                message: 'Conversation successfully deleted!',
+                message: "Unterhaltung gelöscht",
                 conversation: deletedConv
             });
         } else {
@@ -168,7 +193,7 @@ const deleteConvByID = async (req, res) => {
             await conv.save();
 
             return res.status(200).json({
-                message: 'User from Conversation successfully removed!',
+                message: "Benutzer von Unterhaltung entfernt",
                 conversation: conv
             });
         }
@@ -179,8 +204,17 @@ const deleteConvByID = async (req, res) => {
     }
 };
 
-const read = (req, res) => {
+const read = async (req, res) => {
     return res.status(200).json(req.conv);
+};
+
+const updateUnRead = async (req, _, next) => {
+    // check if sender of last message is not current user, then update readAt timestamp
+    const lastMsg = req.conv.messages.slice(-1)[0];
+    if (!lastMsg.senderId.equals(req.auth._id)) {
+        await req.conv.updateOne({ readAt: Date.now() }, { timestamps: false }).exec();
+    }
+    return next();
 };
 
 export default {
@@ -190,5 +224,6 @@ export default {
     writeMessage,
     getConvByUser,
     deleteConvByID,
-    countUnreadMessages
+    countUnreadMessages,
+    updateUnRead
 };

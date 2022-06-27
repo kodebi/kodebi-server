@@ -1,6 +1,6 @@
-import multer from 'multer';
-import ImageKit from 'imagekit';
-import config from '../config/config';
+import multer from "multer";
+import ImageKit from "imagekit";
+import config from "../config/config.js";
 
 // imagekit.io Auth definition
 // Define in process.env.
@@ -36,28 +36,28 @@ const upload = multer({
 
 // Upload Image to memory
 // feldname beim Upload-formular = bookImage
-const UploadImageToMemory = upload.single('bookImage');
+const UploadImageToMemory = upload.single("bookImage");
 
 const ShowUploadInfo = (req, res, next) => {
-    console.log('File upload to memory successfull.');
-    next();
+    console.log("File upload to memory successfull.");
+    return next();
 };
 
 const UploadBookImageToImagekit = (req, res, next) => {
-    const file_name = Date.now() + '-' + req.file.originalname;
+    const file_name = Date.now() + "-" + req.file.originalname;
 
     imagekitUpload
         .upload({
             file: req.file.buffer, //required
             fileName: file_name, //required
-            folder: 'b'
+            folder: "b"
         })
         .then((response) => {
             // Add the image url to the response
             res.locals.BookUrl = response.url;
             // Add the image id to the response for deleting
             res.locals.BookImageId = response.fileId;
-            next();
+            return next();
         })
         .catch((error) => {
             res.send(error);
@@ -66,14 +66,14 @@ const UploadBookImageToImagekit = (req, res, next) => {
 
 // For later for removing pictures from the db
 const MoveBookToDeleteFolder = (req, res, next) => {
-    const fileName = req.book.image.split('/').pop();
-    const sourceFilePath = '/b/' + fileName;
-    const destinationPath = '/d/';
+    const fileName = req.book.image.split("/").pop();
+    const sourceFilePath = "/b/" + fileName;
+    const destinationPath = "/d/";
 
     imagekitUpload
         .moveFile(sourceFilePath, destinationPath)
         .then((_) => {
-            next();
+            return next();
         })
         .catch((error) => {
             res.send(error);
@@ -83,11 +83,11 @@ const MoveBookToDeleteFolder = (req, res, next) => {
 // We need the id to delete the file
 const DeleteBookImage = (req, res, next) => {
     // Find by file name and file path
-    const fileName = req.book.image.split('/').pop();
+    const fileName = req.book.image.split("/").pop();
     let ImageId = 0;
     imagekitUpload.listFiles(
         {
-            searchQuery: 'name=' + fileName + ' AND filePath="b"'
+            searchQuery: "name=" + fileName + ' AND filePath="b"'
         },
         function (error, result) {
             if (error) {
@@ -98,16 +98,17 @@ const DeleteBookImage = (req, res, next) => {
         }
     );
 
-    if (ImageId != 0) {
+    if (ImageId !== 0) {
         imagekitUpload.deleteFile(ImageId, function (error, result) {
             if (error) {
                 console.log(error);
             } else {
+                return next();
                 console.log(result);
             }
         });
     } else {
-        res.send('Image not found');
+        res.send("Bild nicht gefunden");
     }
 };
 

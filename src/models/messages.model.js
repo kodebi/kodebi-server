@@ -1,31 +1,39 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+import crypto from "crypto";
 
 const MessageSchema = new mongoose.Schema(
     {
-        sender: {
+        senderId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: "User"
         },
-        reciever: {
+        senderName: {
+            type: String,
+            minLength: [2, "Sender Name zu kurz"],
+            maxLength: [20, "Sender Name zu lang"]
+        },
+        recieverId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: "User"
+        },
+        recieverName: {
+            type: String,
+            minLength: [2, "Empfänger Name zu kurz"],
+            maxLength: [20, "Empfänger Name zu lang"]
         },
         message: {
             type: String,
-            required: [true, 'Bitte Nachricht eingeben']
-        },
-        group: {
-            type: String,
-            trim: true,
-            lowercase: true
-            //required: [true, 'Gruppe ist erforderlich']
+            required: [true, "Bitte Nachricht eingeben"],
+            minLength: [2, "Nachricht zu kurz"],
+            maxLength: [500, "Nachricht zu lang"]
         }
     },
     {
         timestamps: {
-            createdAt: 'createdAt'
+            createdAt: "createdAt"
         }
     }
 );
 
-export default mongoose.model('Message', MessageSchema);
+const MessageModel = mongoose.model("Message", MessageSchema);
+export { MessageSchema, MessageModel };

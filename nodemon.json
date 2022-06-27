@@ -1,7 +1,9 @@
 {
-    "verbose": false,
-    "watch": [
-        "./src/"
-    ],
-    "exec": "node --es-module-specifier-resolution=node ./src/server.js"
+    "verbose": true,
+    "watch": ["./src/"],
+    "exec": "node --es-module-specifier-resolution=node ./src/server.js",
+    "delay": "2500",
+    "env": {
+        "NODE_ENV": "test"
+    }
 }
