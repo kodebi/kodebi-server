@@ -33,16 +33,16 @@ const requestPasswordReset = async (req, res) => {
     }
     const link = "http://app.kodebi.de/auth/resetPassword?token=" + resetToken + "&id=" + user._id;
 
-    // if (process.env.NODE_ENV === "test") {
-    //     console.info("Sending token directly");
-    //     // Get token directly for testing
-    //     return res.status(200).json({
-    //         message: "Benutzer erfolgreich erstellt!",
-    //         user: user._id,
-    //         token: resetToken,
-    //         link: link
-    //     });
-    // }
+    if (process.env.NODE_ENV === "test") {
+        console.info("Sending token directly");
+        // Get token directly for testing
+        return res.status(200).json({
+            message: "Benutzer erfolgreich erstellt!",
+            user: user._id,
+            token: resetToken,
+            link: link
+        });
+    }
 
     sendPasswordResetMail(user.email, link);
 
