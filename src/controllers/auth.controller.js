@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import expressJwt from "express-jwt";
 import User from "../models/user.model.js";
 import config from "../config/config.js";
-import mongoose from "mongoose";
+import { UnauthorizedError, NotFoundError, InternalServerError, ForbiddenError } from "../errors";
 
 const signin = async (req, res) => {
     let user;
@@ -10,33 +10,20 @@ const signin = async (req, res) => {
         user = await User.findOne({
             email: req.body.email,
             deletedAt: { $eq: undefined }
-        }).exec();
+        });
+        // error handling
+        if (!user) {
+            throw new NotFoundError("Benutzer nicht gefunden");
+        }
+        if (!user.authenticate(req.body.password)) {
+            throw new UnauthorizedError("Falsches Passwort");
+        }
+        if (!user.activated) {
+            throw new UnauthorizedError("Bitte aktiviere dein Profil zuerst");
+        }
     } catch (err) {
-        return res.status(404).json({
-            error: "Benutzer nicht gefunden"
-        });
-    }
-
-    if (!user)
-        return res.status(404).json({
-            error: "Benutzer nicht gefunden"
-        });
-
-    if (!req.body.password) {
-        return res.status(401).send({
-            error: "Falsches Passwort"
-        });
-    }
-
-    if (!user.authenticate(req.body.password)) {
-        return res.status(401).send({
-            error: "Falsches Passwort"
-        });
-    }
-
-    if (!user.activated) {
-        return res.status(401).send({
-            error: "Bitte aktiviere dein Profil zuerst"
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 
@@ -56,6 +43,10 @@ const signin = async (req, res) => {
             }
         );
 
+        if (!token) {
+            throw new InternalServerError("Konnte dich nicht anmelden. Der Fehler liegt bei uns");
+        }
+
         const oneDay = 1000 * 60 * 60 * 24;
         res.cookie("t", token, {
             httpOnly: true,
@@ -71,10 +62,9 @@ const signin = async (req, res) => {
                 groups: user.groups
             }
         });
-    } catch (error) {
-        return res.status(500).json({
-            what: err.name,
-            error: "Konnte dich nicht anmelden"
+    } catch (err) {
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
@@ -102,10 +92,10 @@ const requireSignin = expressJwt({
 // Sein eigenes Profil bearbeiten ist in Ordnung
 const hasAuthorization = (req, res, next) => {
     const authorized = req.profile && req.auth && req.profile._id.equals(req.auth._id);
-
     if (!authorized) {
-        return res.status(403).json({
-            error: "Benutzer ist nicht berechtigt"
+        const err = new ForbiddenError("Benutzer ist nicht berechtigt");
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
     return next();
@@ -114,8 +104,9 @@ const hasAuthorization = (req, res, next) => {
 const hasAuthorizationForOwnMsg = (req, res, next) => {
     const authorized = req.auth && req.params.userId.equals(req.auth._id);
     if (!authorized) {
-        return res.status(403).json({
-            error: "Benutzer ist nicht berechtigt"
+        const err = new ForbiddenError("Benutzer ist nicht berechtigt");
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
     return next();
@@ -123,10 +114,10 @@ const hasAuthorizationForOwnMsg = (req, res, next) => {
 
 const hasAuthorizationForNewMessage = (req, res, next) => {
     const authorized = req.body.senderId.equals(req.auth._id);
-
     if (!authorized) {
-        return res.status(403).json({
-            error: "Benutzer ist nicht der Sender der neuen Nachricht"
+        const err = new ForbiddenError("Benutzer ist nicht der Sender der neuen Nachricht");
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
     return next();
@@ -138,8 +129,9 @@ const hasAuthorizationForConversation = (req, res, next) => {
     const authorized = req.auth && isrecipient;
 
     if (!authorized) {
-        return res.status(403).json({
-            error: "Benutzer ist nicht Teil der Unterhaltung"
+        const err = new ForbiddenError("Benutzer ist nicht Teil der Unterhaltung");
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
     return next();
@@ -149,8 +141,9 @@ const hasAuthorizationForConversation = (req, res, next) => {
 const hasAuthorizationForBook = (req, res, next) => {
     const authorized = req.auth && req.book.ownerId.equals(req.auth._id);
     if (!authorized) {
-        return res.status(403).json({
-            error: "Benutzer ist nicht berechtigt für das Buch"
+        const err = new ForbiddenError("Benutzer ist nicht berechtigt für das Buch");
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
     return next();

@@ -1,30 +1,25 @@
 import extend from "lodash/extend";
 import User from "../models/user.model.js";
+import { BadRequestError, NotFoundError } from "../errors";
 
 // Erstelle Benutzer
 const create = async (req, res, next) => {
     // POST daher body
     req.body.activated = false;
-    if (!req.body.password) {
-        return res.status(500).json({
-            error: "Ein Passwort ist notwendig."
-        });
-    }
-    if (req.body.password.length < 6) {
-        return res.status(500).json({
-            error: "Dein Passwort muss mindestens 6 Zeichen lang sein."
-        });
-    }
-
     try {
         const user = new User(req.body);
-        await user.save();
-        req.ownProfile = { _id: user._id, email: user.email };
-        return next();
+        if (!req.body.password) {
+            throw new BadRequestError("Ein Passwort ist notwendig.");
+        } else if (req.body.password.length < 6) {
+            throw new BadRequestError("Dein Passwort muss mindestens 6 Zeichen lang sein.");
+        } else {
+            await user.save();
+            req.ownProfile = { _id: user._id, email: user.email };
+            return next();
+        }
     } catch (err) {
-        return res.status(500).json({
-            what: err.name,
-            error: err.message
+        return res.status(400).json({
+            message: err.message
         });
     }
 };
@@ -41,7 +36,7 @@ const list = async (req, res) => {
     } catch (err) {
         return res.status(500).json({
             what: err.name,
-            error: err.message
+            message: err.message
         });
     }
 };
@@ -50,41 +45,37 @@ const list = async (req, res) => {
 // An die Anfrage anhaengen und weiterleiten
 const userByID = async (req, res, next) => {
     try {
-        let user = await User.findById(req.params.userId, {
+        const user = await User.findById(req.params.userId, {
             hashed_password: 0,
             salt: 0,
             group: 0
-        }).exec();
+        });
         if (!user) {
-            return res.status(404).json({
-                error: "User nicht gefunden"
-            });
+            throw new NotFoundError("User nicht gefunden");
         }
         req.profile = user;
         return next();
     } catch (err) {
-        return res.status(500).json({
-            error: "Could not retrieve user"
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
 
 const getOwnUser = async (req, res, next) => {
     try {
-        let user = await User.findById(req.auth._id, {
+        const user = await User.findById(req.auth._id, {
             hashed_password: 0,
             salt: 0
-        }).exec();
+        });
         if (!user) {
-            return res.status(404).json({
-                error: "User nicht gefunden"
-            });
+            throw new NotFoundError("User nicht gefunden");
         }
         req.ownProfile = user;
         return next();
     } catch (err) {
-        return res.status(500).json({
-            error: "Could not retrieve user"
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
@@ -104,9 +95,7 @@ const update = async (req, res) => {
     try {
         let user = req.profile;
         if (req.body.password && req.body.password < 6) {
-            return res.status(500).json({
-                error: "Dein Passwort muss mindestens 6 Zeichen lang sein."
-            });
+            throw new BadRequestError("Dein Passwort muss mindestens 6 Zeichen lang sein.");
         }
         // lodash - merge and extend user profile
         // restrict changes?
@@ -117,8 +106,8 @@ const update = async (req, res) => {
             user: user._id
         });
     } catch (err) {
-        return res.status(500).json({
-            what: err.name
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
