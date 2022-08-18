@@ -102,7 +102,7 @@ const hasAuthorization = (req, res, next) => {
 };
 
 const hasAuthorizationForOwnMsg = (req, res, next) => {
-    const authorized = req.auth && req.params.userId.equals(req.auth._id);
+    const authorized = req.auth && req.params.userId === req.auth._id;
     if (!authorized) {
         const err = new ForbiddenError("Benutzer ist nicht berechtigt");
         return res.status(err.statusCode).json({
@@ -113,7 +113,7 @@ const hasAuthorizationForOwnMsg = (req, res, next) => {
 };
 
 const hasAuthorizationForNewMessage = (req, res, next) => {
-    const authorized = req.body.senderId.equals(req.auth._id);
+    const authorized = req.body.senderId === req.auth._id;
     if (!authorized) {
         const err = new ForbiddenError("Benutzer ist nicht der Sender der neuen Nachricht");
         return res.status(err.statusCode).json({
@@ -124,7 +124,7 @@ const hasAuthorizationForNewMessage = (req, res, next) => {
 };
 
 const hasAuthorizationForConversation = (req, res, next) => {
-    const isrecipient = req.conv.recipients.some((recipient) => recipient.equals(req.auth._id));
+    const isrecipient = req.conv.recipients.some((recipient) => recipient === req.auth._id);
 
     const authorized = req.auth && isrecipient;
 

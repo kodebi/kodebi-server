@@ -9,9 +9,9 @@ const create = async (req, res, next) => {
     try {
         const user = new User(req.body);
         if (!req.body.password) {
-            throw new BadRequestError("Ein Passwort ist notwendig.");
+            throw new BadRequestError("Ein Passwort ist notwendig!");
         } else if (req.body.password.length < 6) {
-            throw new BadRequestError("Dein Passwort muss mindestens 6 Zeichen lang sein.");
+            throw new BadRequestError("Dein Passwort muss mindestens 6 Zeichen lang sein!");
         } else {
             await user.save();
             req.ownProfile = { _id: user._id, email: user.email };
