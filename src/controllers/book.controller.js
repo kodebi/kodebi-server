@@ -2,6 +2,8 @@ import extend from "lodash/extend";
 import Book from "../models/book.model.js";
 import User from "../models/user.model.js";
 import { BorrowedBooks, BookmarkedBooks } from "../models/bookList.model.js";
+import BadRequestError from "../errors/400.js";
+import NotFoundError from "../errors/404.js";
 
 //Buch wird erstellt
 const create = async (req, res) => {
@@ -10,15 +12,14 @@ const create = async (req, res) => {
         req.body.ownerName = req.auth.name;
         req.body.ownerId = req.auth._id;
 
+        const book = new Book(req.body);
+
         book.image = res.locals.BookUrl;
         book.imagekitIoId = res.locals.BookImageId;
-        if (!res.locals.BookUrl || !res.locals.BookImageId) {
-            return res.status(400).json({
-                message: "Dein Buch braucht ein Bild"
-            });
-        }
 
-        const book = new Book(req.body);
+        if (!res.locals.BookUrl || !res.locals.BookImageId) {
+            throw new BadRequestError('Dein Buch braucht ein Bild"');
+        }
 
         await book.save();
         return res.status(200).json({
@@ -26,9 +27,8 @@ const create = async (req, res) => {
             book: book
         });
     } catch (err) {
-        return res.status(500).json({
-            what: err.name,
-            err: err.message
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
@@ -41,11 +41,13 @@ const list = async (req, res) => {
         })
             .select("name author image category ownerId ownerName language status")
             .exec();
+        if (!bookList) {
+            throw new NotFoundError("Liste konnte nicht gefunden werden");
+        }
         res.json(bookList);
     } catch (err) {
-        return res.status(500).json({
-            what: err.name,
-            err: err.message
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
@@ -55,19 +57,16 @@ const bookByUser = async (req, res) => {
     try {
         // exec -> lean
         const books = await Book.find({
-            owner: req.params.userId,
-            deletedAt: { $ne: undefined }
-        }).exec();
+            ownerId: req.params.userId,
+            deletedAt: { $eq: undefined }
+        });
         if (!books) {
-            return res.status(404).json({
-                error: "Benutzer hat noch keine Bücher"
-            });
+            throw new NotFoundError("Benutzer hat noch keine Bücher");
         }
         return res.json(books);
     } catch (err) {
-        return res.status(500).json({
-            what: err.name,
-            err: err.message
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
@@ -77,16 +76,13 @@ const bookByID = async (req, res, next) => {
     try {
         const book = await Book.findById(req.params.bookId);
         if (!book) {
-            return res.status(404).json({
-                error: "Buch nicht gefunden"
-            });
+            throw new NotFoundError("Buch nicht gefunden");
         }
         req.book = book;
         return next();
     } catch (err) {
-        return res.status(500).json({
-            what: err.name,
-            err: err.message
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
@@ -217,7 +213,7 @@ const getBorrowed = async (req, res) => {
     } catch (err) {
         return res.status(500).json({
             what: err.name,
-            err: err
+            err: err.message
         });
     }
 };
