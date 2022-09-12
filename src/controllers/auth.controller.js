@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import expressJwt from "express-jwt";
 import User from "../models/user.model.js";
 import config from "../config/config.js";
+import mongoose from "mongoose";
 import { UnauthorizedError, NotFoundError, InternalServerError, ForbiddenError } from "../errors";
 
 const signin = async (req, res) => {
@@ -91,7 +92,7 @@ const requireSignin = expressJwt({
 // Darf der Benutzer die Aktion ausfuehren?
 // Sein eigenes Profil bearbeiten ist in Ordnung
 const hasAuthorization = (req, res, next) => {
-    const authorized = req.profile && req.auth && req.profile._id.equals(req.auth._id);
+    const authorized = req.profile && req.auth && req.profile._id === req.auth._id;
     if (!authorized) {
         const err = new ForbiddenError("Benutzer ist nicht berechtigt");
         return res.status(err.statusCode).json({
@@ -103,6 +104,7 @@ const hasAuthorization = (req, res, next) => {
 
 const hasAuthorizationForOwnMsg = (req, res, next) => {
     const authorized = req.auth && req.params.userId === req.auth._id;
+
     if (!authorized) {
         const err = new ForbiddenError("Benutzer ist nicht berechtigt");
         return res.status(err.statusCode).json({
@@ -114,6 +116,7 @@ const hasAuthorizationForOwnMsg = (req, res, next) => {
 
 const hasAuthorizationForNewMessage = (req, res, next) => {
     const authorized = req.body.senderId === req.auth._id;
+
     if (!authorized) {
         const err = new ForbiddenError("Benutzer ist nicht der Sender der neuen Nachricht");
         return res.status(err.statusCode).json({
@@ -124,9 +127,13 @@ const hasAuthorizationForNewMessage = (req, res, next) => {
 };
 
 const hasAuthorizationForConversation = (req, res, next) => {
-    const isrecipient = req.conv.recipients.some((recipient) => recipient === req.auth._id);
+    const recipients = req.conv.recipients.map((recipient) => {
+        if (recipient instanceof mongoose.Types.ObjectId) return recipient.toString();
+    });
 
-    const authorized = req.auth && isrecipient;
+    const isRecipient = recipients.some((recipient) => recipient === req.auth._id);
+
+    const authorized = req.auth && isRecipient;
 
     if (!authorized) {
         const err = new ForbiddenError("Benutzer ist nicht Teil der Unterhaltung");
@@ -134,12 +141,13 @@ const hasAuthorizationForConversation = (req, res, next) => {
             message: err.message
         });
     }
+
     return next();
 };
 
 //Dürfen BenutzerInnen etwas an einem Buch ändern?
 const hasAuthorizationForBook = (req, res, next) => {
-    const authorized = req.auth && req.book.ownerId.equals(req.auth._id);
+    const authorized = req.auth && req.book.ownerId === req.auth._id;
     if (!authorized) {
         const err = new ForbiddenError("Benutzer ist nicht berechtigt für das Buch");
         return res.status(err.statusCode).json({
