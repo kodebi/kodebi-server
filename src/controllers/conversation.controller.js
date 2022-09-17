@@ -37,7 +37,10 @@ const createConv = async (req, res) => {
     });
 
     // Erstelle Conversation
-    const conversation = new Conversation({ topic: req.body.topic, group: req.body.group });
+    const conversation = new Conversation({
+        book: { bookId: req.body.bookId, bookName: req.body.bookName },
+        group: req.body.group
+    });
     conversation.recipients.push(req.auth._id);
     conversation.recipients.push(req.body.recieverId);
     conversation.messages.push(message);
