@@ -3,6 +3,7 @@ import { MessageModel } from "../models/messages.model.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import NotFoundError from "../errors/404.js";
+import BadRequestError from "../errors/400.js";
 
 const userByID = async (req) => {
     try {
@@ -38,7 +39,7 @@ const createConv = async (req, res) => {
 
     // Erstelle Conversation
     const conversation = new Conversation({
-        book: { bookId: req.body.bookId, bookName: req.body.bookName },
+        book: { bookId: req.body.bookId, bookName: req.body.bookName, borrowed: false },
         group: req.body.group
     });
     conversation.recipients.push(req.auth._id);
@@ -124,6 +125,24 @@ const convByID = async (req, res, next) => {
     } catch (err) {
         return res.status(err.statusCode).json({
             message: err.message
+        });
+    }
+};
+
+const updateBorrowStatusInConv = async (req, res) => {
+    try {
+        if (!req.conv) {
+            throw new BadRequestError("Konversation scheint nicht zu existieren");
+        }
+        let conv = req.conv;
+        conv.book.borrowed = true;
+        await conv.save();
+        return res.status(200).json({
+            message: "Verleihstatus in Konversation geupdated"
+        });
+    } catch (error) {
+        return res.status(error.statusCode).json({
+            message: error.message
         });
     }
 };
@@ -217,5 +236,6 @@ export default {
     getConvByUser,
     deleteConvByID,
     countUnreadMessages,
-    updateUnRead
+    updateUnRead,
+    updateBorrowStatusInConv
 };

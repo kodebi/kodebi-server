@@ -18,6 +18,10 @@ const ConversationSchema = new mongoose.Schema(
             bookName: {
                 type: String,
                 trim: true
+            },
+            borrowed: {
+                type: Boolean,
+                default: false
             }
         },
         group: {
