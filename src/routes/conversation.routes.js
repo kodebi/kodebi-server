@@ -20,11 +20,7 @@ protectedRouter
     .route("/:convId")
     .all(conversationCtrl.convByID, authCtrl.hasAuthorizationForConversation)
     .get(conversationCtrl.updateUnRead, conversationCtrl.read)
-    .patch(
-        conversationCtrl.convByID,
-        authCtrl.hasAuthorizationForConversation,
-        conversationCtrl.updateBorrowStatusInConv
-    )
+    .patch(conversationCtrl.updateBorrowStatusInConv)
     .post(conversationCtrl.writeMessage)
     .delete(conversationCtrl.deleteConvByID);
 
