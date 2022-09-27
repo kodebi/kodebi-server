@@ -10,11 +10,19 @@ const ConversationSchema = new mongoose.Schema(
             }
         ],
         messages: [MessageSchema],
-        topic: {
-            type: String,
-            trim: true,
-            minLength: [2, "Topic zu kurz"],
-            maxLength: [20, "Topic zu lang"]
+        book: {
+            bookId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Book"
+            },
+            bookName: {
+                type: String,
+                trim: true
+            },
+            borrowed: {
+                type: Boolean,
+                default: false
+            }
         },
         group: {
             type: String,

@@ -2,6 +2,8 @@ import Conversation from "../models/conversation.model.js";
 import { MessageModel } from "../models/messages.model.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
+import NotFoundError from "../errors/404.js";
+import BadRequestError from "../errors/400.js";
 
 const userByID = async (req) => {
     try {
@@ -23,9 +25,7 @@ const createConv = async (req, res) => {
     const receiver = await userByID(req);
 
     if (!receiver) {
-        return res.status(404).json({
-            error: "User nicht gefunden"
-        });
+        throw new NotFoundError("User nicht gefunden");
     }
 
     // Erstelt erste Nachricht und die zugehoerige Conversation
@@ -34,11 +34,14 @@ const createConv = async (req, res) => {
         senderId: req.auth._id,
         senderName: req.auth.name,
         recieverId: req.body.recieverId,
-        recieverName: receiver.name
+        recieverName: req.body.recieverName
     });
 
     // Erstelle Conversation
-    const conversation = new Conversation({ topic: req.body.topic, group: req.body.group });
+    const conversation = new Conversation({
+        book: { bookId: req.body.bookId, bookName: req.body.bookName, borrowed: false },
+        group: req.body.group
+    });
     conversation.recipients.push(req.auth._id);
     conversation.recipients.push(req.body.recieverId);
     conversation.messages.push(message);
@@ -51,9 +54,8 @@ const createConv = async (req, res) => {
             conversation: conversation
         });
     } catch (err) {
-        return res.status(500).json({
-            what: err.name,
-            err: err.message
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
@@ -63,9 +65,7 @@ const writeMessage = async (req, res) => {
     const receiver = await userByID(req);
 
     if (!receiver) {
-        return res.status(404).json({
-            error: "User nicht gefunden"
-        });
+        throw new NotFoundError("User nicht gefunden");
     }
 
     const message = new MessageModel({
@@ -73,7 +73,7 @@ const writeMessage = async (req, res) => {
         senderId: req.auth._id,
         senderName: req.auth.name,
         recieverId: req.body.recieverId,
-        recieverName: receiver.name
+        recieverName: req.body.recieverName
     });
 
     try {
@@ -87,9 +87,8 @@ const writeMessage = async (req, res) => {
             // conversation: conversation
         });
     } catch (err) {
-        return res.status(500).json({
-            what: err.name,
-            err: err.message
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
@@ -101,17 +100,14 @@ const getConvByUser = async (req, res, next) => {
     try {
         let convs = await Conversation.find({ recipients: obId }).exec();
         if (!convs) {
-            return res.status(404).json({
-                error: "Benutzer hat noch keine Unterhaltungen"
-            });
+            throw new NotFoundError("Benutzer hat noch keine Unterhaltungen");
         }
 
         req.conv = convs;
         return next();
     } catch (err) {
-        return res.status(500).json({
-            what: err.name,
-            err: err.message
+        return res.status(err.statusCode).json({
+            message: err.message
         });
     }
 };
@@ -121,17 +117,32 @@ const convByID = async (req, res, next) => {
     try {
         const conv = await Conversation.findById(req.params.convId).exec();
         if (!conv) {
-            return res.status(404).json({
-                error: "Unterhaltung nicht gefunden"
-            });
+            throw new NotFoundError("Konversation nicht gefunden");
         }
 
         req.conv = conv;
         return next();
     } catch (err) {
-        return res.status(500).json({
-            what: err.name,
-            err: err.message
+        return res.status(err.statusCode).json({
+            message: err.message
+        });
+    }
+};
+
+const updateBorrowStatusInConv = async (req, res) => {
+    try {
+        if (!req.conv) {
+            throw new BadRequestError("Konversation scheint nicht zu existieren");
+        }
+        let conv = req.conv;
+        conv.book.borrowed = true;
+        await conv.save();
+        return res.status(200).json({
+            message: "Verleihstatus in Konversation geupdated"
+        });
+    } catch (error) {
+        return res.status(error.statusCode).json({
+            message: error.message
         });
     }
 };
@@ -225,5 +236,6 @@ export default {
     getConvByUser,
     deleteConvByID,
     countUnreadMessages,
-    updateUnRead
+    updateUnRead,
+    updateBorrowStatusInConv
 };

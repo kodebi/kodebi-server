@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 let cMongoUri = process.env.MONGODB_URI;
-if (process.env.NODE_ENV === "test") {
-    console.info("Starting in test env");
-    cMongoUri = process.env.MONGODB_URI_TEST;
-}
+// if (process.env.NODE_ENV === "test") {
+//     console.info("Starting in test env");
+//     cMongoUri = process.env.MONGODB_URI_TEST;
+// }
 
 const config = {
     env: process.env.NODE_ENV || "development",
