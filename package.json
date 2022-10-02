@@ -5,7 +5,7 @@
     "main": "src/server.js",
     "scripts": {
         "dev": "nodemon",
-        "start": "node --es-module-specifier-resolution=node ./server.js",
+        "start": "node --es-module-specifier-resolution=node ./src/server.js",
         "heroku-postbuild": "cd client && npm ci && npm run build",
         "test": "NODE_ENV=test && mocha --check-leaks --node-option=es-module-specifier-resolution=node --input-type=module --timeout 10000 --require chai/register-should.js ./test/*.js"
     },
