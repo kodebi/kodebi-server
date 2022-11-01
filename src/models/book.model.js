@@ -7,14 +7,14 @@ const BookSchema = new mongoose.Schema(
             trim: true,
             required: [true, "Name des Buches fehlt"],
             minLength: [2, "Buch Name zu kurz"],
-            maxLength: [20, "Buch Name zu lang"]
+            maxLength: [40, "Buch Name zu lang"]
         },
         author: {
             type: String,
             trim: true,
             required: [true, "Autor des Buches fehlt"],
             minLength: [2, "Author zu kurz"],
-            maxLength: [20, "Author zu lang"]
+            maxLength: [30, "Author zu lang"]
         },
         image: {
             type: String,
