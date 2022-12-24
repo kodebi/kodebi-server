@@ -1,8 +1,9 @@
-FROM node:16.13-alpine3.14 as Dev
+# dev 
+FROM node:18-slim as dev
 
 # Create dir for app and node_modules and give perm to user node
-RUN mkdir -p /backend/node_modules && chown -R node:node /backend
-WORKDIR /backend
+RUN mkdir -p /api/node_modules && chown -R node:node /api
+WORKDIR /api
 
 COPY package*.json ./
 

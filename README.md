@@ -17,18 +17,18 @@ npm install --legacy-peer-deps
 
 ### Während der Entwicklung
 
-Als Datenbank wird mongodb benutzt, welches vorher installiert werden muss:
-[https://docs.mongodb.com/manual/installation/]
-Datenbank starten mit
+Als Datenbank wird mongodb benutzt. Die Entwicklung geschieht aber autark in Docker-Containern. Hierzu gibt es ein `Dockerfile` und eine `docker-compose.yml`, welche die erforderliche Konfiguration haben.
+
+Zum Starten
 
 ```
-mongod
+docker compose -p [projekt_name] up -d
 ```
 
-Server starten
+Zum Stoppen der Container
 
 ```
-npm run dev
+docker compose down
 ```
 
 In Prod:
@@ -38,7 +38,7 @@ npm run start
 ```
 
 Im Browser aufrufen:
-http://localhost:3000
+http://localhost:4000
 
 ### Beschreibung
 
@@ -52,15 +52,18 @@ Testen mit https://install.advancedrestclient.com/install
 
 ### User Routes
 
-| Route                | HTTP Methode |                 Beschreibung |
-| -------------------- | :----------: | ---------------------------: |
-| `/api/users`         |    `POST`    |            Erstelle Benutzer |
-| `/api/users`         |    `GET`     |         Liste aller Benutzer |
-| `/api/users/:userId` |    `GET`     | Rufe bestimmten Benutzer auf |
-| `/api/users/:userId` |    `PUT`     |        aktualisiere Benutzer |
-| `/api/users/:userId` |   `DELETE`   |              Lösche Benutzer |
-| `/auth/signin`       |    `POST`    |                     Anmelden |
-| `/auth/signout`      |    `GET`     |                     Abmelden |
+| Route                        | HTTP Methode |                      Beschreibung |
+| ---------------------------- | :----------: | --------------------------------: |
+| `/api/users`                 |    `POST`    |                 Erstelle Benutzer |
+| `/api/users`                 |    `GET`     |              Liste aller Benutzer |
+| `/api/users/:userId`         |    `GET`     |      Rufe bestimmten Benutzer auf |
+| `/api/users/:userId`         |    `PUT`     |             aktualisiere Benutzer |
+| `/api/users/:userId`         |   `DELETE`   |                   Lösche Benutzer |
+| `/auth/signin`               |    `POST`    |                          Anmelden |
+| `/auth/signout`              |    `GET`     |                          Abmelden |
+| `/auth/completeRegistration` |    `POST`    |                        Aktivieren |
+| `/auth/requestPasswordReset` |    `POST`    |     Anfrage Passwort zurücksetzen |
+| `/auth/resetPassword`        |    `POST`    | Passwort zuruecksetzen bestätigen |
 
 ### Benutzer Felder in der Datenbank
 
@@ -74,6 +77,27 @@ Testen mit https://install.advancedrestclient.com/install
 | group           |     string      |                                                    Optional |
 | borrowedBooks   |  borrowedBooks  |                                        Ausgeliehende Bücher |
 | bookmarkedBooks | bookmarkedBooks |                                             gemerkte Bücher |
+
+### requestPasswordReset route
+
+| Feld |  Typ   |   Beschreibung |
+| ---- | :----: | -------------: |
+| mail | string | Mail des Users |
+
+### resetPassword route
+
+| Feld     |       Typ       |           Beschreibung |
+| -------- | :-------------: | ---------------------: |
+| userId   | mongoose.userid |           ID des Users |
+| token    |     string      | Token zum zurücksetzen |
+| password |     string      |         Neues Passwort |
+
+### registration activate route
+
+| Feld   |       Typ       |           Beschreibung |
+| ------ | :-------------: | ---------------------: |
+| userId | mongoose.userid |           ID des Users |
+| token  |     string      | Token zum zurücksetzen |
 
 ### Bücher API
 
@@ -168,24 +192,3 @@ Testen mit https://install.advancedrestclient.com/install
 
 Bei ungelesen Nachrichten ist der Zeitstempel updatedAt neuer als readAt und der Sender der Nachricht ist nicht der gerade eingeloggte Benutzer
 updatedAt > readAt und Sender der letzten Nachricht != Gerade eingeloggter Benutzer
-
-### requestPasswordReset route
-
-| Feld |  Typ   |   Beschreibung |
-| ---- | :----: | -------------: |
-| mail | string | Mail des Users |
-
-### resetPassword route
-
-| Feld     |       Typ       |           Beschreibung |
-| -------- | :-------------: | ---------------------: |
-| userId   | mongoose.userid |           ID des Users |
-| token    |     string      | Token zum zurücksetzen |
-| password |     string      |         Neues Passwort |
-
-### registration activate route
-
-| Feld   |       Typ       |           Beschreibung |
-| ------ | :-------------: | ---------------------: |
-| userId | mongoose.userid |           ID des Users |
-| token  |     string      | Token zum zurücksetzen |
